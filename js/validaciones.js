@@ -87,6 +87,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 1.b FORMULARIO DE INICIO DE SESIÓN
+    const formLogin = document.getElementById('formLogin');
+    if (formLogin) {
+        formLogin.addEventListener('submit', async (evento) => {
+            evento.preventDefault();
+            limpiarErrores();
+
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+
+            let loginValido = true;
+
+            const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email === '') {
+                mostrarError('loginEmail', 'Ingresa tu correo electrónico.');
+                loginValido = false;
+            } else if (!regexEmail.test(email)) {
+                mostrarError('loginEmail', 'Ingresa un correo electrónico válido.');
+                loginValido = false;
+            }
+
+            if (password === '') {
+                mostrarError('loginPassword', 'Ingresa tu contraseña.');
+                loginValido = false;
+            }
+
+            if (loginValido) {
+                const respuestaBackend = await iniciarSesionAPI(email, password);
+
+                const mensajeExitoLogin = document.getElementById('mensajeExitoLogin');
+                if (mensajeExitoLogin) {
+                    mensajeExitoLogin.textContent = `¡Ingreso correcto! ${respuestaBackend.mensaje}`;
+                    mensajeExitoLogin.style.display = 'block';
+                }
+
+                localStorage.setItem('usuarioSesion', JSON.stringify(respuestaBackend.usuario));
+                formLogin.reset();
+            }
+        });
+    }
+
     // 2. FORMULARIO DE CONTACTO
     const formContacto = document.getElementById('formContacto');
     if (formContacto) {

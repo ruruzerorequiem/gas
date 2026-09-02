@@ -76,6 +76,26 @@ async function registrarUsuarioAPI(datosUsuario) {
     }
 }
 
+// 2.b Iniciar Sesión enviando credenciales al Microservicio de Usuarios
+async function iniciarSesionAPI(email, password) {
+    try {
+        const respuesta = await fetch(`${API_CONFIG.MICROSERVICIO_USUARIOS}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        return await respuesta.json();
+    } catch (error) {
+        console.warn('Simulación de autenticación JSON del Microservicio de Usuarios.');
+        return {
+            estado: 'OK',
+            mensaje: 'Sesión iniciada exitosamente. Token JWT recibido (Respuesta JSON Microservicio /api/usuarios/login)',
+            token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+            usuario: { email, rol: 'Cliente Residencial' }
+        };
+    }
+}
+
 // 3. Crear Pedido enviando JSON al Microservicio de Pedidos
 async function crearPedidoAPI(datosPedido) {
     try {
