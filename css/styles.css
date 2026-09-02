@@ -23,6 +23,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .logo {
@@ -34,11 +35,11 @@ header {
 
 .menu-toggle {
     display: block;
-    background: none;
+    background: #003366;
     border: 1px solid white;
     color: white;
     font-size: 20px;
-    padding: 5px 10px;
+    padding: 6px 12px;
     cursor: pointer;
     border-radius: 4px;
 }
@@ -56,26 +57,38 @@ header {
 nav ul {
     list-style: none;
     padding: 0;
+    background-color: #003366;
+    border-radius: 5px;
+    overflow: hidden;
 }
 
 nav li {
-    margin-bottom: 10px;
+    margin-bottom: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+nav li:last-child {
+    border-bottom: none;
 }
 
 nav a {
+    display: block;
+    padding: 12px 15px;
     color: white;
     text-decoration: none;
     font-weight: bold;
+    text-align: center;
 }
 
 nav a.activo, nav a:hover {
-    text-decoration: underline;
+    background-color: #002244;
+    text-decoration: none;
 }
 
 main {
     max-width: 1100px;
     margin: 20px auto;
-    padding: 0 15px;
+    padding: 0 15px 80px 15px;
 }
 
 .hero {
@@ -229,10 +242,14 @@ main {
 footer {
     background-color: #222222;
     color: white;
-    padding: 20px 15px;
-    margin-top: 40px;
+    padding: 15px 20px;
     text-align: center;
     font-size: 14px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
 }
 
 footer a {
@@ -253,10 +270,23 @@ footer a {
     nav ul {
         display: flex;
         gap: 15px;
+        background-color: transparent;
+        border-radius: 0;
     }
 
     nav li {
         margin-bottom: 0;
+        border-bottom: none;
+    }
+
+    nav a {
+        display: inline;
+        padding: 0;
+    }
+
+    nav a.activo, nav a:hover {
+        background-color: transparent;
+        text-decoration: underline;
     }
 
     .productos-grid {
