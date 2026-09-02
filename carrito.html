@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Solicitud de pedido de gas licuado a domicilio en Chillán.">
+    <title>Solicitud de Pedido - Gas El Volcán</title>
+    
+    <!-- Hoja de estilos CSS externa -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <style>
+        .tabla-carrito {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #ffffff;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            border: 1px solid #ccc;
+        }
+
+        .tabla-carrito th, .tabla-carrito td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .tabla-carrito th {
+            background-color: #004085;
+            color: white;
+        }
+
+        .resumen-total {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: right;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ENCABEZADO Y NAVEGACIÓN -->
+    <header>
+        <div class="header-container">
+            <a href="index.html" class="logo">🔥 Gas <span>El Volcán</span></a>
+            
+            <button class="menu-toggle" id="botonMenu" aria-label="Abrir Menú de Navegación">
+                &#9776;
+            </button>
+
+            <nav class="nav-menu" id="menuNavegacion">
+                <ul>
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="productos.html">Cilindros de Gas</a></li>
+                    <li><a href="registro.html">Ingreso / Registro</a></li>
+                    <li><a href="contacto.html">Contacto</a></li>
+                    <li><a href="carrito.html" class="activo">🛒 Mis Pedidos (<span class="cart-count">0</span>)</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main>
+        <h1 class="titulo-seccion">Solicitud de Pedido de Gas</h1>
+
+        <div id="mensajePedido" class="mensaje-exito" style="display:none;"></div>
+
+        <div id="contenidoCarrito">
+            <table class="tabla-carrito">
+                <thead>
+                    <tr>
+                        <th>Cilindro</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                        <th>Subtotal</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="filasCarrito">
+                    <!-- Filas generadas por JS -->
+                </tbody>
+            </table>
+
+            <div class="form-grupo" style="text-align: left; max-width: 500px; margin-left: auto;">
+                <label for="direccionEntrega">Dirección de Entrega en Chillán *</label>
+                <input type="text" id="direccionEntrega" class="form-input" placeholder="Ej: Av. O'Higgins 1234, Chillán">
+            </div>
+
+            <div class="resumen-total">
+                <h2>Total a Pagar: <span id="totalPagar" style="color: #28a745;">$0</span></h2>
+                <br>
+                <button class="btn btn-secundario" onclick="vaciarCarrito()">Vaciar Pedido</button>
+                <button class="btn" onclick="procesarPedido()">Confirmar Pedido (Enviar a /api/pedidos)</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER INFORMATIVO -->
+    <footer>
+        <p>🔥 <strong>Distribuidora de Gas El Volcán</strong> - Chillán, Región del Ñuble</p>
+        <p>&copy; 2026 Proyecto DSY1104 - Desarrollo Fullstack II (Forma C)</p>
+    </footer>
+
+    <!-- JAVASCRIPT EXTERNO -->
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', renderizarCarrito);
+
+        function renderizarCarrito() {
+            const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+            const filas = document.getElementById('filasCarrito');
+            const totalElemento = document.getElementById('totalPagar');
+
+            if (carrito.length === 0) {
+                filas.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No has agregado cilindros a tu pedido. <a href="productos.html">Ir a ver cilindros</a></td></tr>`;
+                totalElemento.textContent = '$0';
+                return;
+            }
+
+            let total = 0;
+            filas.innerHTML = carrito.map((prod, index) => {
+                const subtotal = prod.precio * prod.cantidad;
+                total += subtotal;
+                return `
+                    <tr>
+                        <td>
+                            <div style="display:flex; align-items:center; gap: 10px;">
+                                <img src="${prod.imagen}" alt="${prod.nombre}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+                                <strong>${prod.nombre}</strong>
+                            </div>
+                        </td>
+                        <td>$${prod.precio.toLocaleString('es-CL')}</td>
+                        <td>${prod.cantidad}</td>
+                        <td>$${subtotal.toLocaleString('es-CL')}</td>
+                        <td><button class="btn btn-secundario" style="padding: 4px 8px; font-size: 12px;" onclick="eliminarProducto(${index})">Quitar</button></td>
+                    </tr>
+                `;
+            }).join('');
+
+            totalElemento.textContent = `$${total.toLocaleString('es-CL')}`;
+        }
+
+        function eliminarProducto(index) {
+            let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+            carrito.splice(index, 1);
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+            renderizarCarrito();
+            actualizarContadorCarrito();
+        }
+
+        function vaciarCarrito() {
+            localStorage.removeItem('carrito');
+            renderizarCarrito();
+            actualizarContadorCarrito();
+        }
+
+        async function procesarPedido() {
+            const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+            const direccion = document.getElementById('direccionEntrega').value.trim();
+
+            if (carrito.length === 0) {
+                alert('Debe agregar al menos un cilindro de gas.');
+                return;
+            }
+
+            if (direccion === '') {
+                alert('Por favor ingresa tu dirección de entrega en Chillán.');
+                return;
+            }
+
+            const datosPedido = {
+                fecha: new Date().toISOString(),
+                direccion: direccion,
+                productos: carrito,
+                total: carrito.reduce((acc, p) => acc + (p.precio * p.cantidad), 0)
+            };
+
+            // Envía los datos al Microservicio de Pedidos (/api/pedidos) en formato JSON (Requisito 0.4)
+            const respuestaAPI = await crearPedidoAPI(datosPedido);
+
+            const mensajeBox = document.getElementById('mensajePedido');
+            mensajeBox.innerHTML = `<strong>¡Pedido de Gas Confirmado!</strong> ${respuestaAPI.mensaje} (Código de Pedido: #${respuestaAPI.idPedido})`;
+            mensajeBox.style.display = 'block';
+
+            vaciarCarrito();
+            document.getElementById('direccionEntrega').value = '';
+        }
+    </script>
+</body>
+</html>

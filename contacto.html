@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contacto y atencion a clientes - Gas El Volcan en Chillan.">
+    <title>Contacto - Gas El Volcán</title>
+    
+    <!-- Hoja de estilos CSS externa -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- ENCABEZADO Y NAVEGACIÓN -->
+    <header>
+        <div class="header-container">
+            <a href="index.html" class="logo">🔥 Gas <span>El Volcán</span></a>
+            
+            <button class="menu-toggle" id="botonMenu" aria-label="Abrir Menú de Navegación">
+                &#9776;
+            </button>
+
+            <nav class="nav-menu" id="menuNavegacion">
+                <ul>
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="productos.html">Cilindros de Gas</a></li>
+                    <li><a href="registro.html">Ingreso / Registro</a></li>
+                    <li><a href="contacto.html" class="activo">Contacto</a></li>
+                    <li><a href="carrito.html">🛒 Mis Pedidos (<span class="cart-count">0</span>)</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main>
+        <div class="form-contenedor">
+            <h1 class="titulo-seccion">Contacto y Atención al Cliente</h1>
+            <p>Atención directa para clientes de Chillán y comunas aledañas.</p>
+            <br>
+
+            <div class="mensaje-exito" id="mensajeExitoContacto"></div>
+
+            <form id="formContacto" novalidate>
+                <div class="form-grupo">
+                    <label for="contactoNombre">Nombre Completo *</label>
+                    <input type="text" id="contactoNombre" class="form-input" placeholder="Tu nombre completo">
+                    <span class="mensaje-error" id="error-contactoNombre"></span>
+                </div>
+
+                <div class="form-grupo">
+                    <label for="contactoEmail">Correo Electrónico *</label>
+                    <input type="email" id="contactoEmail" class="form-input" placeholder="tu@email.com">
+                    <span class="mensaje-error" id="error-contactoEmail"></span>
+                </div>
+
+                <div class="form-grupo">
+                    <label for="contactoAsunto">Asunto *</label>
+                    <input type="text" id="contactoAsunto" class="form-input" placeholder="Ej: Consulta sobre zona de reparto">
+                    <span class="mensaje-error" id="error-contactoAsunto"></span>
+                </div>
+
+                <div class="form-grupo">
+                    <label for="contactoMensaje">Mensaje o Consulta *</label>
+                    <textarea id="contactoMensaje" class="form-input" rows="4" placeholder="Escribe tu mensaje..."></textarea>
+                    <span class="mensaje-error" id="error-contactoMensaje"></span>
+                </div>
+
+                <button type="submit" class="btn" style="width: 100%;">Enviar Mensaje a Operadora</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- FOOTER INFORMATIVO -->
+    <footer>
+        <p>🔥 <strong>Distribuidora de Gas El Volcán</strong> - Chillán, Región del Ñuble</p>
+        <p>&copy; 2026 Proyecto DSY1104 - Desarrollo Fullstack II (Forma C)</p>
+    </footer>
+
+    <!-- JAVASCRIPT EXTERNO -->
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/validaciones.js"></script>
+</body>
+</html>

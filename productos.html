@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cilindros de gas licuado de 5kg, 11kg y 15kg disponibles en Chillán.">
+    <title>Cilindros de Gas - Gas El Volcán</title>
+    
+    <!-- Hoja de estilos CSS externa -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- ENCABEZADO Y NAVEGACIÓN -->
+    <header>
+        <div class="header-container">
+            <a href="index.html" class="logo">🔥 Gas <span>El Volcán</span></a>
+            
+            <button class="menu-toggle" id="botonMenu" aria-label="Abrir Menú de Navegación">
+                &#9776;
+            </button>
+
+            <nav class="nav-menu" id="menuNavegacion">
+                <ul>
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="productos.html" class="activo">Cilindros de Gas</a></li>
+                    <li><a href="registro.html">Ingreso / Registro</a></li>
+                    <li><a href="contacto.html">Contacto</a></li>
+                    <li><a href="carrito.html">🛒 Mis Pedidos (<span class="cart-count">0</span>)</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main>
+        <h1 class="titulo-seccion">Catálogo de Cilindros de Gas Licuado</h1>
+        <p>Selecciona la cantidad y el tipo de cilindro que necesitas para enviar tu pedido directo a tu domicilio:</p>
+        <br>
+
+        <!-- GRID DE PRODUCTOS DE GAS -->
+        <div class="productos-grid" id="contenedorProductos">
+            <!-- Los productos de gas se cargan dinámicamente desde js/api.js o por defecto -->
+        </div>
+    </main>
+
+    <!-- FOOTER INFORMATIVO -->
+    <footer>
+        <p>🔥 <strong>Distribuidora de Gas El Volcán</strong> - Chillán, Región del Ñuble</p>
+        <p>&copy; 2026 Proyecto DSY1104 - Desarrollo Fullstack II (Forma C)</p>
+    </footer>
+
+    <!-- JAVASCRIPT EXTERNO -->
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const contenedor = document.getElementById('contenedorProductos');
+            if (!contenedor) return;
+
+            const productos = await obtenerProductosAPI();
+
+            contenedor.innerHTML = productos.map(prod => `
+                <article class="card-producto">
+                    <img src="${prod.imagen}" alt="${prod.nombre}">
+                    <div class="card-body">
+                        <h3 class="card-titulo">${prod.nombre}</h3>
+                        <p class="card-precio">$${prod.precio.toLocaleString('es-CL')}</p>
+                        <p>${prod.descripcion}</p>
+                        <br>
+                        <button class="btn" onclick="agregarAlCarrito(${prod.id}, '${prod.nombre}', ${prod.precio}, '${prod.imagen}')">
+                            Pedir Este Cilindro
+                        </button>
+                    </div>
+                </article>
+            `).join('');
+        });
+    </script>
+</body>
+</html>

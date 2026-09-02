@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Distribuidora de Gas El Volcán - Gas licuado a domicilio en Chillán.">
+    <title>Gas El Volcán - Distribución de Gas Licuado</title>
+    
+    <!-- Hoja de estilos CSS externa -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- ENCABEZADO Y NAVEGACIÓN -->
+    <header>
+        <div class="header-container">
+            <a href="index.html" class="logo">🔥 Gas <span>El Volcán</span></a>
+            
+            <!-- Botón Hamburguesa para Móvil (360px) -->
+            <button class="menu-toggle" id="botonMenu" aria-label="Abrir Menú de Navegación">
+                &#9776;
+            </button>
+
+            <!-- Menú de Navegación Interconectado -->
+            <nav class="nav-menu" id="menuNavegacion">
+                <ul>
+                    <li><a href="index.html" class="activo">Inicio</a></li>
+                    <li><a href="productos.html">Cilindros de Gas</a></li>
+                    <li><a href="registro.html">Ingreso / Registro</a></li>
+                    <li><a href="contacto.html">Contacto</a></li>
+                    <li><a href="carrito.html">🛒 Mis Pedidos (<span class="cart-count">0</span>)</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main>
+        
+        <!-- HERO BANNER -->
+        <section class="hero">
+            <h1>Distribuidora de Gas El Volcán</h1>
+            <p>Gas licuado a domicilio rápido y seguro en Chillán y comunas aledañas.</p>
+            <br>
+            <img src="img/cilindros.png" alt="Cilindros de Gas El Volcán" style="max-width: 100%; height: auto; border-radius: 5px;">
+            <br><br>
+            <a href="productos.html" class="btn">Pedir Gas Ahora</a>
+        </section>
+
+        <!-- SECCIÓN CILINDROS DE GAS (ARTÍCULOS) -->
+        <section>
+            <h2 class="titulo-seccion">Nuestros Cilindros de Gas</h2>
+            
+            <div class="productos-grid">
+                <!-- Cilindro 5 kg -->
+                <article class="card-producto">
+                    <img src="img/cilindro_5kg.png" alt="Cilindro de Gas 5 kg">
+                    <div class="card-body">
+                        <h3 class="card-titulo">Cilindro de Gas 5 kg</h3>
+                        <p class="card-precio">$12.500</p>
+                        <p>Ideal para estufas pequeñas, cocinillas y camping.</p>
+                        <br>
+                        <button class="btn" onclick="agregarAlCarrito(1, 'Cilindro de Gas 5 kg', 12500, 'img/cilindro_5kg.png')">Pedir Cilindro</button>
+                    </div>
+                </article>
+
+                <!-- Cilindro 11 kg -->
+                <article class="card-producto">
+                    <img src="img/cilindro_11kg.png" alt="Cilindro de Gas 11 kg">
+                    <div class="card-body">
+                        <h3 class="card-titulo">Cilindro de Gas 11 kg</h3>
+                        <p class="card-precio">$21.900</p>
+                        <p>El tamaño estándar recomendado para cocina y calefacción del hogar.</p>
+                        <br>
+                        <button class="btn" onclick="agregarAlCarrito(2, 'Cilindro de Gas 11 kg', 21900, 'img/cilindro_11kg.png')">Pedir Cilindro</button>
+                    </div>
+                </article>
+
+                <!-- Cilindro 15 kg -->
+                <article class="card-producto">
+                    <img src="img/cilindro_15kg.png" alt="Cilindro de Gas 15 kg">
+                    <div class="card-body">
+                        <h3 class="card-titulo">Cilindro de Gas 15 kg</h3>
+                        <p class="card-precio">$27.500</p>
+                        <p>Mayor duración y rendimiento para hogares grandes y comercios.</p>
+                        <br>
+                        <button class="btn" onclick="agregarAlCarrito(3, 'Cilindro de Gas 15 kg', 27500, 'img/cilindro_15kg.png')">Pedir Cilindro</button>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- SECCIÓN VIDEO EMBEBIDO HTML5 -->
+        <section style="margin-top: 30px;">
+            <h2 class="titulo-seccion">Conoce Nuestro Servicio de Reparto</h2>
+            <p>Atención directa en Chillán con entregas rápidas en tu domicilio:</p>
+            <br>
+            <div class="contenedor-video">
+                <video controls poster="img/cilindros.png" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:contain; background-color:#222; border-radius:5px;">
+                    <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+                    Tu navegador no soporta el elemento de video.
+                </video>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER INFORMATIVO -->
+    <footer>
+        <p>🔥 <strong>Distribuidora de Gas El Volcán</strong> - Chillán, Región del Ñuble</p>
+        <p>Teléfono de Pedidos: +56 42 222 3344 | Correo: contacto@gaselvolcan.cl</p>
+        <p>&copy; 2026 Proyecto DSY1104 - Desarrollo Fullstack II (Forma C)</p>
+    </footer>
+
+    <!-- JAVASCRIPT EXTERNO -->
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
