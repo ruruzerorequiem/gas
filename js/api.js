@@ -19,7 +19,7 @@ const MOCK_DATA = {
         { 
             id: 1, 
             nombre: 'Cilindro de Gas 5 kg', 
-            precio: 12500, 
+            precio: 6500, 
             categoria: 'Cilindros', 
             imagen: 'img/cilindro_5kg.png', 
             descripcion: 'Cilindro pequeño de 5 kg. Ideal para estufas portátiles y camping.' 
@@ -27,7 +27,7 @@ const MOCK_DATA = {
         { 
             id: 2, 
             nombre: 'Cilindro de Gas 11 kg', 
-            precio: 21900, 
+            precio: 12000, 
             categoria: 'Cilindros', 
             imagen: 'img/cilindro_11kg.png', 
             descripcion: 'Cilindro mediano de 11 kg. El más utilizado para cocina y calefacción familiar.' 
@@ -35,10 +35,19 @@ const MOCK_DATA = {
         { 
             id: 3, 
             nombre: 'Cilindro de Gas 15 kg', 
-            precio: 27500, 
+            precio: 16000, 
             categoria: 'Cilindros', 
             imagen: 'img/cilindro_15kg.png', 
             descripcion: 'Cilindro grande de 15 kg. Máxima duración para hogares y locales comerciales.' 
+        },
+        { 
+        id: 4, 
+        codigo: 'CL004',
+        nombre: 'Cilindro GLP 45 kg', 
+        precio: 45000, 
+        categoria: 'Cilindros', 
+        imagen: 'img/cilindro_45kg.png', 
+        descripcion: 'Cilindro industrial para restaurantes, talleres y calefacción comercial.' 
         }
     ]
 };
