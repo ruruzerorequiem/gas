@@ -1,209 +1,185 @@
 /* ==========================================================================
    VALIDACIONES DE FORMULARIO - VALIDACIONES.JS (PDF Requisito 2)
-   Validaciones simples y comprensibles en JavaScript vanilla.
-   Muestra mensajes de error claros y personalizados debajo de cada campo.
+   Integrado con clases contextuales de Bootstrap 5
    ========================================================================== */
+
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. FORMULARIO DE REGISTRO
-    const formRegistro = document.getElementById('formRegistro');
-    if (formRegistro) {
-        formRegistro.addEventListener('submit', async (evento) => {
-            // Evita que el formulario se reargue por defecto
-            evento.preventDefault();
+  // 1. REGISTRO
+  const formRegistro = document.getElementById('formRegistro');
+  if (formRegistro) {
+    formRegistro.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      limpiarErrores('formRegistro');
 
-            // Limpia errores previos
-            limpiarErrores();
+      const nombre = document.getElementById('nombre');
+      const email = document.getElementById('email');
+      const password = document.getElementById('password');
+      const confirmPassword = document.getElementById('confirmPassword');
+      const telefono = document.getElementById('telefono');
 
-            // Captura los valores de los campos
-            const nombre = document.getElementById('nombre').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const confirmPassword = document.getElementById('confirmPassword').value.trim();
-            const telefono = document.getElementById('telefono').value.trim();
+      let esValido = true;
 
-            let formularioValido = true;
+      if (nombre.value.trim().length < 3) {
+        setInvalid(nombre, 'error-nombre', 'El nombre completo debe tener al menos 3 caracteres.');
+        esValido = false;
+      } else {
+        setValid(nombre);
+      }
 
-            // Validación Campo Nombre
-            if (nombre === '') {
-                mostrarError('nombre', 'El nombre completo es obligatorio.');
-                formularioValido = false;
-            } else if (nombre.length < 3) {
-                mostrarError('nombre', 'El nombre debe tener al menos 3 caracteres.');
-                formularioValido = false;
-            }
+      const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!regexEmail.test(email.value.trim())) {
+        setInvalid(email, 'error-email', 'Ingresa un correo electrónico válido.');
+        esValido = false;
+      } else {
+        setValid(email);
+      }
 
-            // Validación Campo Email (con expresión regular simple)
-            const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (email === '') {
-                mostrarError('email', 'El correo electrónico es obligatorio.');
-                formularioValido = false;
-            } else if (!regexEmail.test(email)) {
-                mostrarError('email', 'Por favor ingresa un correo electrónico válido (ejemplo: usuario@correo.com).');
-                formularioValido = false;
-            }
+      if (password.value.trim().length < 6) {
+        setInvalid(password, 'error-password', 'La contraseña debe tener mínimo 6 caracteres.');
+        esValido = false;
+      } else {
+        setValid(password);
+      }
 
-            // Validación Campo Contraseña
-            if (password === '') {
-                mostrarError('password', 'La contraseña es obligatoria.');
-                formularioValido = false;
-            } else if (password.length < 6) {
-                mostrarError('password', 'La contraseña debe tener mínimo 6 caracteres.');
-                formularioValido = false;
-            }
+      if (confirmPassword.value.trim() === '' || confirmPassword.value !== password.value) {
+        setInvalid(confirmPassword, 'error-confirmPassword', 'Las contraseñas no coinciden.');
+        esValido = false;
+      } else {
+        setValid(confirmPassword);
+      }
 
-            // Validación Confirmar Contraseña
-            if (confirmPassword === '') {
-                mostrarError('confirmPassword', 'Debes confirmar tu contraseña.');
-                formularioValido = false;
-            } else if (password !== confirmPassword) {
-                mostrarError('confirmPassword', 'Las contraseñas no coinciden.');
-                formularioValido = false;
-            }
+      if (telefono.value.trim() !== '' && !/^[0-9]{9}$/.test(telefono.value.trim())) {
+        setInvalid(telefono, 'error-telefono', 'El teléfono debe tener 9 dígitos numéricos.');
+        esValido = false;
+      } else if (telefono.value.trim() !== '') {
+        setValid(telefono);
+      }
 
-            // Validación Teléfono (Solo números opcionales de 9 dígitos)
-            if (telefono !== '' && !/^[0-9]{9}$/.test(telefono)) {
-                mostrarError('telefono', 'El teléfono debe contener exactamente 9 números.');
-                formularioValido = false;
-            }
+      if (esValido) {
+        const datos = {
+          nombre: nombre.value.trim(),
+          email: email.value.trim(),
+          password: password.value.trim(),
+          telefono: telefono.value.trim(),
+          rol: document.getElementById('rol').value
+        };
+        const resp = await registrarUsuarioAPI(datos);
+        const alerta = document.getElementById('mensajeExito');
+        alerta.textContent = `¡Registro exitoso! ${resp.mensaje}`;
+        alerta.classList.remove('d-none');
+        formRegistro.reset();
+        limpiarEstados('formRegistro');
+      }
+    });
+  }
 
-            // Si todo es correcto, simula el registro llamando al Microservicio (api.js)
-            if (formularioValido) {
-                const datosUsuario = { nombre, email, password, telefono };
-                
-                // Llamada al Microservicio Usuarios (api.js)
-                const respuestaBackend = await registrarUsuarioAPI(datosUsuario);
+  // 2. LOGIN
+  const formLogin = document.getElementById('formLogin');
+  if (formLogin) {
+    formLogin.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      limpiarErrores('formLogin');
 
-                const mensajeExito = document.getElementById('mensajeExito');
-                if (mensajeExito) {
-                    mensajeExito.textContent = `¡Registro exitoso! ${respuestaBackend.mensaje}`;
-                    mensajeExito.style.display = 'block';
-                }
+      const email = document.getElementById('loginEmail');
+      const password = document.getElementById('loginPassword');
+      let esValido = true;
 
-                // Limpia el formulario
-                formRegistro.reset();
-            }
-        });
-    }
+      const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!regexEmail.test(email.value.trim())) {
+        setInvalid(email, 'error-loginEmail', 'Ingresa un correo válido.');
+        esValido = false;
+      } else {
+        setValid(email);
+      }
 
-    // 1.b FORMULARIO DE INICIO DE SESIÓN
-    const formLogin = document.getElementById('formLogin');
-    if (formLogin) {
-        formLogin.addEventListener('submit', async (evento) => {
-            evento.preventDefault();
-            limpiarErrores();
+      if (password.value.trim().length < 4) {
+        setInvalid(password, 'error-loginPassword', 'Ingresa tu contraseña.');
+        esValido = false;
+      } else {
+        setValid(password);
+      }
 
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
+      if (esValido) {
+        const resp = await iniciarSesionAPI(email.value.trim(), password.value.trim());
+        const alerta = document.getElementById('mensajeExitoLogin');
+        alerta.textContent = `¡Bienvenido! ${resp.mensaje}`;
+        alerta.classList.remove('d-none');
+        localStorage.setItem('usuarioSesion', JSON.stringify(resp.usuario));
+        formLogin.reset();
+        limpiarEstados('formLogin');
+      }
+    });
+  }
 
-            let loginValido = true;
+  // 3. CONTACTO
+  const formContacto = document.getElementById('formContacto');
+  if (formContacto) {
+    formContacto.addEventListener('submit', (e) => {
+      e.preventDefault();
+      limpiarErrores('formContacto');
 
-            const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (email === '') {
-                mostrarError('loginEmail', 'Ingresa tu correo electrónico.');
-                loginValido = false;
-            } else if (!regexEmail.test(email)) {
-                mostrarError('loginEmail', 'Ingresa un correo electrónico válido.');
-                loginValido = false;
-            }
+      const nombre = document.getElementById('contactoNombre');
+      const email = document.getElementById('contactoEmail');
+      const asunto = document.getElementById('contactoAsunto');
+      const mensaje = document.getElementById('contactoMensaje');
+      let esValido = true;
 
-            if (password === '') {
-                mostrarError('loginPassword', 'Ingresa tu contraseña.');
-                loginValido = false;
-            }
+      if (nombre.value.trim().length < 3) {
+        setInvalid(nombre, 'error-contactoNombre', 'Ingresa tu nombre.');
+        esValido = false;
+      } else setValid(nombre);
 
-            if (loginValido) {
-                const respuestaBackend = await iniciarSesionAPI(email, password);
+      if (!email.value.includes('@')) {
+        setInvalid(email, 'error-contactoEmail', 'Ingresa un correo válido.');
+        esValido = false;
+      } else setValid(email);
 
-                const mensajeExitoLogin = document.getElementById('mensajeExitoLogin');
-                if (mensajeExitoLogin) {
-                    mensajeExitoLogin.textContent = `¡Ingreso correcto! ${respuestaBackend.mensaje}`;
-                    mensajeExitoLogin.style.display = 'block';
-                }
+      if (asunto.value.trim() === '') {
+        setInvalid(asunto, 'error-contactoAsunto', 'El asunto es obligatorio.');
+        esValido = false;
+      } else setValid(asunto);
 
-                localStorage.setItem('usuarioSesion', JSON.stringify(respuestaBackend.usuario));
-                formLogin.reset();
-            }
-        });
-    }
+      if (mensaje.value.trim().length < 5) {
+        setInvalid(mensaje, 'error-contactoMensaje', 'Escribe tu mensaje.');
+        esValido = false;
+      } else setValid(mensaje);
 
-    // 2. FORMULARIO DE CONTACTO
-    const formContacto = document.getElementById('formContacto');
-    if (formContacto) {
-        formContacto.addEventListener('submit', (evento) => {
-            evento.preventDefault();
-            limpiarErrores();
-
-            const nombre = document.getElementById('contactoNombre').value.trim();
-            const email = document.getElementById('contactoEmail').value.trim();
-            const asunto = document.getElementById('contactoAsunto').value.trim();
-            const mensaje = document.getElementById('contactoMensaje').value.trim();
-
-            let esValido = true;
-
-            if (nombre === '') {
-                mostrarError('contactoNombre', 'Por favor ingresa tu nombre.');
-                esValido = false;
-            }
-            if (email === '' || !email.includes('@')) {
-                mostrarError('contactoEmail', 'Ingresa un correo de contacto válido.');
-                esValido = false;
-            }
-            if (asunto === '') {
-                mostrarError('contactoAsunto', 'El asunto es obligatorio.');
-                esValido = false;
-            }
-            if (mensaje === '') {
-                mostrarError('contactoMensaje', 'Por favor escribe tu mensaje.');
-                esValido = false;
-            }
-
-            if (esValido) {
-                const mensajeExito = document.getElementById('mensajeExitoContacto');
-                if (mensajeExito) {
-                    mensajeExito.textContent = '¡Gracias por contactarnos! Tu mensaje fue enviado con éxito.';
-                    mensajeExito.style.display = 'block';
-                }
-                formContacto.reset();
-            }
-        });
-    }
+      if (esValido) {
+        const alerta = document.getElementById('mensajeExitoContacto');
+        alerta.textContent = '¡Mensaje enviado con éxito a la operadora de Chillán!';
+        alerta.classList.remove('d-none');
+        formContacto.reset();
+        limpiarEstados('formContacto');
+      }
+    });
+  }
 });
 
-// Función auxiliar para mostrar mensaje de error dinámico en el campo específico
-function mostrarError(idCampo, mensaje) {
-    const campo = document.getElementById(idCampo);
-    if (!campo) return;
-
-    // Agrega borde rojo al input
-    campo.classList.add('input-error');
-
-    // Busca el elemento de mensaje de error asociado
-    const errorElemento = document.getElementById(`error-${idCampo}`);
-    if (errorElemento) {
-        errorElemento.textContent = mensaje;
-        errorElemento.style.display = 'block';
-    }
+function setInvalid(input, errorId, mensaje) {
+  input.classList.add('is-invalid');
+  input.classList.remove('is-valid');
+  const errorBox = document.getElementById(errorId);
+  if (errorBox) {
+    errorBox.textContent = mensaje;
+  }
 }
 
-// Función auxiliar para limpiar todos los errores visibles
-function limpiarErrores() {
-    // Quita clases de error de los inputs
-    document.querySelectorAll('.form-input').forEach(input => {
-        input.classList.remove('input-error');
-    });
+function setValid(input) {
+  input.classList.remove('is-invalid');
+  input.classList.add('is-valid');
+}
 
-    // Oculta mensajes de error
-    document.querySelectorAll('.mensaje-error').forEach(msg => {
-        msg.textContent = '';
-        msg.style.display = 'none';
-    });
+function limpiarErrores(formId) {
+  const form = document.getElementById(formId);
+  if (!form) return;
+  form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+  form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+}
 
-    // Oculta mensajes de éxito
-    const msgExito = document.getElementById('mensajeExito');
-    if (msgExito) msgExito.style.display = 'none';
-
-    const msgExitoContacto = document.getElementById('mensajeExitoContacto');
-    if (msgExitoContacto) msgExitoContacto.style.display = 'none';
+function limpiarEstados(formId) {
+  const form = document.getElementById(formId);
+  if (!form) return;
+  form.querySelectorAll('.is-valid').forEach(el => el.classList.remove('is-valid'));
 }
