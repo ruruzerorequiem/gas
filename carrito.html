@@ -1,196 +1,199 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Solicitud de pedido de gas licuado a domicilio en Chillán.">
-    <title>Solicitud de Pedido - Gas El Volcán</title>
-    
-    <!-- Hoja de estilos CSS externa -->
-    <link rel="stylesheet" href="css/styles.css">
-    
-    <style>
-        .tabla-carrito {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: #ffffff;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            border: 1px solid #ccc;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Confirmación de pedido de gas licuado en Chillán.">
+  <title>Gas El Volcán | Mis Pedidos</title>
 
-        .tabla-carrito th, .tabla-carrito td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ccc;
-        }
-
-        .tabla-carrito th {
-            background-color: #004085;
-            color: white;
-        }
-
-        .resumen-total {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 5px;
-            text-align: right;
-            border: 1px solid #ccc;
-        }
-    </style>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-    <!-- ENCABEZADO Y NAVEGACIÓN -->
-    <header>
-        <div class="header-container">
-            <a href="index.html" class="logo">🔥 Gas <span>El Volcán</span></a>
-            
-            <button class="menu-toggle" id="botonMenu" aria-label="Abrir Menú de Navegación">
-                &#9776;
-            </button>
-
-            <nav class="nav-menu" id="menuNavegacion">
-                <ul>
-                    <li><a href="index.html">Inicio</a></li>
-                    <li><a href="productos.html">Cilindros de Gas</a></li>
-                    <li><a href="registro.html">Ingreso / Registro</a></li>
-                    <li><a href="contacto.html">Contacto</a></li>
-                    <li><a href="carrito.html" class="activo">🛒 Mis Pedidos (<span class="cart-count">0</span>)</a></li>
-                </ul>
-            </nav>
+  <header class="sticky-top shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-custom py-2">
+      <div class="container">
+        <a class="navbar-brand brand-volcan fs-4" href="index.html">
+          <i class="bi bi-fire text-danger me-1"></i>Gas <span>El Volcán</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold">
+            <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
+            <li class="nav-item"><a class="nav-link" href="productos.html">Cilindros de Gas</a></li>
+            <li class="nav-item"><a class="nav-link" href="registro.html">Ingreso / Registro</a></li>
+            <li class="nav-item"><a class="nav-link" href="contacto.html">Contacto</a></li>
+          </ul>
+          <div class="d-flex">
+            <a href="carrito.html" class="btn btn-danger fw-bold position-relative">
+              <i class="bi bi-cart3 me-1"></i> Mis Pedidos
+              <span class="badge bg-white text-danger rounded-pill cart-count ms-1">0</span>
+            </a>
+          </div>
         </div>
-    </header>
+      </div>
+    </nav>
+  </header>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main>
-        <h1 class="titulo-seccion">Solicitud de Pedido de Gas</h1>
+  <main class="py-5">
+    <div class="container">
+      <h1 class="display-6 fw-bold mb-4">Solicitud de Pedido de Gas</h1>
 
-        <div id="mensajePedido" class="mensaje-exito" style="display:none;"></div>
+      <div id="mensajePedido" class="alert alert-success d-none shadow-sm" role="alert"></div>
 
-        <div id="contenidoCarrito">
-            <table class="tabla-carrito">
-                <thead>
-                    <tr>
-                        <th>Cilindro</th>
-                        <th>Precio</th>
-                        <th>Cantidad</th>
-                        <th>Subtotal</th>
-                        <th>Acción</th>
-                    </tr>
+      <div class="row g-4">
+        <!-- Tabla de ítems -->
+        <div class="col-lg-8">
+          <div class="card shadow-sm border-0 rounded-3">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col">Cilindro</th>
+                    <th scope="col">Precio</th>
+                    <th scope="col" class="text-center">Cant.</th>
+                    <th scope="col">Subtotal</th>
+                    <th scope="col" class="text-center">Acción</th>
+                  </tr>
                 </thead>
                 <tbody id="filasCarrito">
-                    <!-- Filas generadas por JS -->
+                  <!-- Inyección dinámica -->
                 </tbody>
-            </table>
-
-            <div class="form-grupo" style="text-align: left; max-width: 500px; margin-left: auto;">
-                <label for="direccionEntrega">Dirección de Entrega en Chillán *</label>
-                <input type="text" id="direccionEntrega" class="form-input" placeholder="Ej: Av. O'Higgins 1234, Chillán">
+              </table>
             </div>
-
-            <div class="resumen-total">
-                <h2>Total a Pagar: <span id="totalPagar" style="color: #28a745;">$0</span></h2>
-                <br>
-                <button class="btn btn-secundario" onclick="vaciarCarrito()">Vaciar Pedido</button>
-                <button class="btn" onclick="procesarPedido()">Confirmar Pedido (Enviar a /api/pedidos)</button>
-            </div>
+          </div>
         </div>
-    </main>
 
-    <!-- FOOTER INFORMATIVO -->
-    <footer>
-        <p>🔥 <strong>Distribuidora de Gas El Volcán</strong> - Chillán, Región del Ñuble</p>
-        <p>&copy; 2026 Proyecto DSY1104 - Desarrollo Fullstack II (Forma C)</p>
-    </footer>
+        <!-- Resumen y checkout -->
+        <div class="col-lg-4">
+          <div class="card shadow-sm border-0 rounded-3 p-4">
+            <h2 class="h5 fw-bold mb-3">Datos del Despacho</h2>
+            
+            <div class="mb-3">
+              <label for="direccionEntrega" class="form-label fw-semibold">Dirección en Chillán / Comunas *</label>
+              <input type="text" id="direccionEntrega" class="form-control" placeholder="Calle, número, depto o villa">
+              <div class="invalid-feedback" id="error-direccionEntrega">Por favor ingresa tu dirección para el repartidor.</div>
+            </div>
 
-    <!-- JAVASCRIPT EXTERNO -->
-    <script src="js/api.js"></script>
-    <script src="js/main.js"></script>
+            <hr>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', renderizarCarrito);
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="text-muted">Total a pagar:</span>
+              <span class="fs-4 fw-bold text-danger" id="totalPagar">$0</span>
+            </div>
 
-        function renderizarCarrito() {
-            const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-            const filas = document.getElementById('filasCarrito');
-            const totalElemento = document.getElementById('totalPagar');
+            <button class="btn btn-danger w-100 py-2 fw-bold mb-2" onclick="procesarPedido()">
+              <i class="bi bi-truck me-1"></i> Confirmar Pedido
+            </button>
+            <button class="btn btn-outline-secondary w-100 btn-sm" onclick="vaciarCarrito()">
+              Vaciar Pedido
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 
-            if (carrito.length === 0) {
-                filas.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No has agregado cilindros a tu pedido. <a href="productos.html">Ir a ver cilindros</a></td></tr>`;
-                totalElemento.textContent = '$0';
-                return;
-            }
+  <footer class="footer-custom py-4 mt-auto">
+    <div class="container text-center">
+      <small class="text-secondary">&copy; 2026 Proyecto DSY1104 - Gas El Volcán Chillán</small>
+    </div>
+  </footer>
 
-            let total = 0;
-            filas.innerHTML = carrito.map((prod, index) => {
-                const subtotal = prod.precio * prod.cantidad;
-                total += subtotal;
-                return `
-                    <tr>
-                        <td>
-                            <div style="display:flex; align-items:center; gap: 10px;">
-                                <img src="${prod.imagen}" alt="${prod.nombre}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
-                                <strong>${prod.nombre}</strong>
-                            </div>
-                        </td>
-                        <td>$${prod.precio.toLocaleString('es-CL')}</td>
-                        <td>${prod.cantidad}</td>
-                        <td>$${subtotal.toLocaleString('es-CL')}</td>
-                        <td><button class="btn btn-secundario" style="padding: 4px 8px; font-size: 12px;" onclick="eliminarProducto(${index})">Quitar</button></td>
-                    </tr>
-                `;
-            }).join('');
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', renderizarCarrito);
 
-            totalElemento.textContent = `$${total.toLocaleString('es-CL')}`;
-        }
+    function renderizarCarrito() {
+      const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+      const filas = document.getElementById('filasCarrito');
+      const totalElemento = document.getElementById('totalPagar');
 
-        function eliminarProducto(index) {
-            let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-            carrito.splice(index, 1);
-            localStorage.setItem('carrito', JSON.stringify(carrito));
-            renderizarCarrito();
-            actualizarContadorCarrito();
-        }
+      if (carrito.length === 0) {
+        filas.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No has agregado cilindros a tu pedido. <a href="productos.html" class="fw-bold text-danger">Ver catálogo</a></td></tr>`;
+        totalElemento.textContent = '$0';
+        return;
+      }
 
-        function vaciarCarrito() {
-            localStorage.removeItem('carrito');
-            renderizarCarrito();
-            actualizarContadorCarrito();
-        }
+      let total = 0;
+      filas.innerHTML = carrito.map((prod, index) => {
+        const subtotal = prod.precio * prod.cantidad;
+        total += subtotal;
+        return `
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <img src="${prod.imagen}" alt="${prod.nombre}" style="width: 45px; height: 45px; object-fit: contain;">
+                <span class="fw-bold">${prod.nombre}</span>
+              </div>
+            </td>
+            <td>$${prod.precio.toLocaleString('es-CL')}</td>
+            <td class="text-center">${prod.cantidad}</td>
+            <td class="fw-semibold text-danger">$${subtotal.toLocaleString('es-CL')}</td>
+            <td class="text-center">
+              <button class="btn btn-outline-danger btn-sm" onclick="eliminarProducto(${index})" title="Quitar">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
 
-        async function procesarPedido() {
-            const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-            const direccion = document.getElementById('direccionEntrega').value.trim();
+      totalElemento.textContent = `$${total.toLocaleString('es-CL')}`;
+    }
 
-            if (carrito.length === 0) {
-                alert('Debe agregar al menos un cilindro de gas.');
-                return;
-            }
+    function eliminarProducto(index) {
+      let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+      carrito.splice(index, 1);
+      localStorage.setItem('carrito', JSON.stringify(carrito));
+      renderizarCarrito();
+      actualizarContadorCarrito();
+    }
 
-            if (direccion === '') {
-                alert('Por favor ingresa tu dirección de entrega en Chillán.');
-                return;
-            }
+    function vaciarCarrito() {
+      localStorage.removeItem('carrito');
+      renderizarCarrito();
+      actualizarContadorCarrito();
+    }
 
-            const datosPedido = {
-                fecha: new Date().toISOString(),
-                direccion: direccion,
-                productos: carrito,
-                total: carrito.reduce((acc, p) => acc + (p.precio * p.cantidad), 0)
-            };
+    async function procesarPedido() {
+      const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+      const inputDireccion = document.getElementById('direccionEntrega');
+      const direccion = inputDireccion.value.trim();
 
-            // Envía los datos al Microservicio de Pedidos (/api/pedidos) en formato JSON (Requisito 0.4)
-            const respuestaAPI = await crearPedidoAPI(datosPedido);
+      if (carrito.length === 0) {
+        alert('Debes agregar al menos un cilindro a tu pedido antes de continuar.');
+        return;
+      }
 
-            const mensajeBox = document.getElementById('mensajePedido');
-            mensajeBox.innerHTML = `<strong>¡Pedido de Gas Confirmado!</strong> ${respuestaAPI.mensaje} (Código de Pedido: #${respuestaAPI.idPedido})`;
-            mensajeBox.style.display = 'block';
+      if (direccion.length < 5) {
+        inputDireccion.classList.add('is-invalid');
+        return;
+      } else {
+        inputDireccion.classList.remove('is-invalid');
+      }
 
-            vaciarCarrito();
-            document.getElementById('direccionEntrega').value = '';
-        }
-    </script>
+      const datosPedido = {
+        fecha: new Date().toISOString(),
+        direccion: direccion,
+        productos: carrito,
+        total: carrito.reduce((acc, p) => acc + (p.precio * p.cantidad), 0)
+      };
+
+      const respuestaAPI = await crearPedidoAPI(datosPedido);
+      const mensajeBox = document.getElementById('mensajePedido');
+      mensajeBox.innerHTML = `<strong>¡Pedido Ingresado!</strong> ${respuestaAPI.mensaje} (Folio asignado: #${respuestaAPI.idPedido})`;
+      mensajeBox.classList.remove('d-none');
+
+      vaciarCarrito();
+      inputDireccion.value = '';
+    }
+  </script>
 </body>
 </html>

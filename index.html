@@ -1,119 +1,179 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Distribuidora de Gas El Volcán - Gas licuado a domicilio en Chillán.">
-    <title>Gas El Volcán - Distribución de Gas Licuado</title>
-    
-    <!-- Hoja de estilos CSS externa -->
-    <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Distribuidora de Gas El Volcán - Distribución de gas licuado a domicilio en Chillán y comunas aledañas.">
+  <title>Gas El Volcán | Inicio</title>
+
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- CSS Externo -->
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-    <!-- ENCABEZADO Y NAVEGACIÓN -->
-    <header>
-        <div class="header-container">
-            <a href="index.html" class="logo">🔥 Gas <span>El Volcán</span></a>
-            
-            <!-- Botón Hamburguesa para Móvil (360px) -->
-            <button class="menu-toggle" id="botonMenu" aria-label="Abrir Menú de Navegación">
-                &#9776;
-            </button>
+  <!-- HEADER Y NAVEGACIÓN -->
+  <header class="sticky-top shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-custom py-2" aria-label="Navegación principal">
+      <div class="container">
+        <a class="navbar-brand brand-volcan fs-4" href="index.html">
+          <i class="bi bi-fire text-danger me-1"></i>Gas <span>El Volcán</span>
+        </a>
 
-            <!-- Menú de Navegación Interconectado -->
-            <nav class="nav-menu" id="menuNavegacion">
-                <ul>
-                    <li><a href="index.html" class="activo">Inicio</a></li>
-                    <li><a href="productos.html">Cilindros de Gas</a></li>
-                    <li><a href="registro.html">Ingreso / Registro</a></li>
-                    <li><a href="contacto.html">Contacto</a></li>
-                    <li><a href="carrito.html">🛒 Mis Pedidos (<span class="cart-count">0</span>)</a></li>
-                </ul>
-            </nav>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Abrir navegación">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarMain">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold">
+            <li class="nav-item"><a class="nav-link active text-danger" aria-current="page" href="index.html">Inicio</a></li>
+            <li class="nav-item"><a class="nav-link" href="productos.html">Cilindros de Gas</a></li>
+            <li class="nav-item"><a class="nav-link" href="registro.html">Ingreso / Registro</a></li>
+            <li class="nav-item"><a class="nav-link" href="contacto.html">Contacto</a></li>
+          </ul>
+          <div class="d-flex">
+            <a href="carrito.html" class="btn btn-outline-danger fw-bold position-relative">
+              <i class="bi bi-cart3 me-1"></i> Mis Pedidos
+              <span class="badge bg-danger rounded-pill cart-count ms-1">0</span>
+            </a>
+          </div>
         </div>
-    </header>
+      </div>
+    </nav>
+  </header>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main>
-        
-        <!-- HERO BANNER -->
-        <section class="hero">
-            <h1>Distribuidora de Gas El Volcán</h1>
-            <p>Gas licuado a domicilio rápido y seguro en Chillán y comunas aledañas.</p>
-            <br>
-            <img src="img/cilindros.png" alt="Cilindros de Gas El Volcán" style="max-width: 100%; height: auto; border-radius: 5px;">
-            <br><br>
-            <a href="productos.html" class="btn">Pedir Gas Ahora</a>
-        </section>
+  <!-- CONTENIDO PRINCIPAL -->
+  <main>
+    <!-- HERO SECTION -->
+    <section class="py-5 bg-light text-center border-bottom">
+      <div class="container py-3">
+        <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold mb-3">Chillán y Región de Ñuble</span>
+        <h1 class="display-5 fw-bold text-dark mb-3">Distribuidora de Gas El Volcán</h1>
+        <p class="lead text-muted col-lg-8 mx-auto mb-4">
+          Gas licuado a domicilio rápido y seguro. Entregas en el día con cobertura en Chillán Centro, Oriente, zonas rurales y comerciales.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+          <a href="productos.html" class="btn btn-danger btn-lg px-4 fw-bold">Pedir Gas Ahora</a>
+          <a href="#video-seccion" class="btn btn-outline-secondary btn-lg px-4">Ver Servicio</a>
+        </div>
+      </div>
+    </section>
 
-        <!-- SECCIÓN CILINDROS DE GAS (ARTÍCULOS) -->
-        <section>
-            <h2 class="titulo-seccion">Nuestros Cilindros de Gas</h2>
-            
-            <div class="productos-grid">
-                <!-- Cilindro 5 kg -->
-                <article class="card-producto">
-                    <img src="img/cilindro_5kg.png" alt="Cilindro de Gas 5 kg">
-                    <div class="card-body">
-                        <h3 class="card-titulo">Cilindro de Gas 5 kg</h3>
-                        <p class="card-precio">$12.500</p>
-                        <p>Ideal para estufas pequeñas, cocinillas y camping.</p>
-                        <br>
-                        <button class="btn" onclick="agregarAlCarrito(1, 'Cilindro de Gas 5 kg', 12500, 'img/cilindro_5kg.png')">Pedir Cilindro</button>
-                    </div>
-                </article>
+    <!-- PRODUCTOS DESTACADOS (ARTÍCULOS CON PRECIOS OFICIALES) -->
+    <section class="py-5">
+      <div class="container">
+        <div class="text-center mb-5">
+          <h2 class="fw-bold">Nuestros Cilindros Destacados</h2>
+          <p class="text-muted">Formatos residenciales certificados con entrega directa en tu puerta</p>
+        </div>
 
-                <!-- Cilindro 11 kg -->
-                <article class="card-producto">
-                    <img src="img/cilindro_11kg.png" alt="Cilindro de Gas 11 kg">
-                    <div class="card-body">
-                        <h3 class="card-titulo">Cilindro de Gas 11 kg</h3>
-                        <p class="card-precio">$21.900</p>
-                        <p>El tamaño estándar recomendado para cocina y calefacción del hogar.</p>
-                        <br>
-                        <button class="btn" onclick="agregarAlCarrito(2, 'Cilindro de Gas 11 kg', 21900, 'img/cilindro_11kg.png')">Pedir Cilindro</button>
-                    </div>
-                </article>
+        <div class="row g-4">
+          <!-- Cilindro 5 kg -->
+          <div class="col-12 col-md-6 col-lg-4">
+            <article class="card h-100 card-producto rounded-3 p-3">
+              <div class="text-center p-3 bg-light rounded-3 mb-3">
+                <img src="img/cilindro_5kg.png" alt="Cilindro de Gas GLP 5 kg" class="img-fluid" style="max-height: 180px; object-fit: contain;">
+              </div>
+              <div class="card-body d-flex flex-column p-0">
+                <span class="badge bg-secondary-subtle text-secondary w-auto align-self-start mb-2">CL001</span>
+                <h3 class="h5 fw-bold card-title">Cilindro GLP 5 kg</h3>
+                <p class="card-text text-muted small flex-grow-1">Ideal para estufas pequeñas, cocinillas y calefactores móviles.</p>
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                  <span class="fs-4 fw-bold text-danger">$6.500</span>
+                  <button class="btn btn-danger fw-bold" onclick="agregarAlCarrito(1, 'Cilindro GLP 5 kg', 6500, 'img/cilindro_5kg.png')">
+                    <i class="bi bi-cart-plus me-1"></i> Pedir
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
 
-                <!-- Cilindro 15 kg -->
-                <article class="card-producto">
-                    <img src="img/cilindro_15kg.png" alt="Cilindro de Gas 15 kg">
-                    <div class="card-body">
-                        <h3 class="card-titulo">Cilindro de Gas 15 kg</h3>
-                        <p class="card-precio">$27.500</p>
-                        <p>Mayor duración y rendimiento para hogares grandes y comercios.</p>
-                        <br>
-                        <button class="btn" onclick="agregarAlCarrito(3, 'Cilindro de Gas 15 kg', 27500, 'img/cilindro_15kg.png')">Pedir Cilindro</button>
-                    </div>
-                </article>
-            </div>
-        </section>
+          <!-- Cilindro 11 kg -->
+          <div class="col-12 col-md-6 col-lg-4">
+            <article class="card h-100 card-producto rounded-3 p-3 border-danger">
+              <div class="text-center p-3 bg-light rounded-3 mb-3">
+                <img src="img/cilindro_11kg.png" alt="Cilindro de Gas GLP 11 kg" class="img-fluid" style="max-height: 180px; object-fit: contain;">
+              </div>
+              <div class="card-body d-flex flex-column p-0">
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="badge bg-secondary-subtle text-secondary">CL002</span>
+                  <span class="badge bg-warning text-dark fw-bold">Más Vendido</span>
+                </div>
+                <h3 class="h5 fw-bold card-title">Cilindro GLP 11 kg</h3>
+                <p class="card-text text-muted small flex-grow-1">Formato tradicional estándar para cocinas y calefonts domiciliarios.</p>
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                  <span class="fs-4 fw-bold text-danger">$12.000</span>
+                  <button class="btn btn-danger fw-bold" onclick="agregarAlCarrito(2, 'Cilindro GLP 11 kg', 12000, 'img/cilindro_11kg.png')">
+                    <i class="bi bi-cart-plus me-1"></i> Pedir
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
 
-        <!-- SECCIÓN VIDEO EMBEBIDO HTML5 -->
-        <section style="margin-top: 30px;">
-            <h2 class="titulo-seccion">Conoce Nuestro Servicio de Reparto</h2>
-            <p>Atención directa en Chillán con entregas rápidas en tu domicilio:</p>
-            <br>
-            <div class="contenedor-video">
-                <video controls poster="img/cilindros.png" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:contain; background-color:#222; border-radius:5px;">
-                    <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
-                    Tu navegador no soporta el elemento de video.
-                </video>
-            </div>
-        </section>
+          <!-- Cilindro 15 kg -->
+          <div class="col-12 col-md-6 col-lg-4">
+            <article class="card h-100 card-producto rounded-3 p-3">
+              <div class="text-center p-3 bg-light rounded-3 mb-3">
+                <img src="img/cilindro_15kg.png" alt="Cilindro de Gas GLP 15 kg" class="img-fluid" style="max-height: 180px; object-fit: contain;">
+              </div>
+              <div class="card-body d-flex flex-column p-0">
+                <span class="badge bg-secondary-subtle text-secondary w-auto align-self-start mb-2">CL003</span>
+                <h3 class="h5 fw-bold card-title">Cilindro GLP 15 kg</h3>
+                <p class="card-text text-muted small flex-grow-1">Mayor autonomía para hogares de alto consumo y locales comerciales.</p>
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                  <span class="fs-4 fw-bold text-danger">$16.000</span>
+                  <button class="btn btn-danger fw-bold" onclick="agregarAlCarrito(3, 'Cilindro GLP 15 kg', 16000, 'img/cilindro_15kg.png')">
+                    <i class="bi bi-cart-plus me-1"></i> Pedir
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    </main>
+    <!-- VIDEO EMBEBIDO RESPONSIVE -->
+    <section class="py-5 bg-light" id="video-seccion">
+      <div class="container">
+        <div class="text-center mb-4">
+          <h2 class="fw-bold">Conoce Nuestro Reparto y Normas de Seguridad</h2>
+          <p class="text-muted">Comprometidos con entregas puntuales y manipulación responsable</p>
+        </div>
+        <div class="video-container shadow rounded-4 overflow-hidden">
+          <div class="ratio ratio-16x9">
+            <video controls poster="img/cilindros.png" preload="metadata">
+              <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+              Tu navegador no soporta el formato de video.
+            </video>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 
-    <!-- FOOTER INFORMATIVO -->
-    <footer>
-        <p>🔥 <strong>Distribuidora de Gas El Volcán</strong> - Chillán, Región del Ñuble</p>
-        <p>Teléfono de Pedidos: +56 42 222 3344 | Correo: contacto@gaselvolcan.cl</p>
-        <p>&copy; 2026 Proyecto DSY1104 - Desarrollo Fullstack II (Forma C)</p>
-    </footer>
+  <!-- FOOTER INFORMATIVO -->
+  <footer class="footer-custom py-4 mt-auto">
+    <div class="container">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-6 text-center text-md-start">
+          <p class="mb-1">🔥 <strong>Distribuidora de Gas El Volcán</strong> - Chillán, Región del Ñuble</p>
+          <small class="text-muted">Teléfono de Pedidos: +56 42 222 3344 | Correo: contacto@gaselvolcan.cl</small>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <small class="text-secondary">&copy; 2026 DSY1104 Desarrollo Fullstack II (Forma C)</small>
+        </div>
+      </div>
+    </div>
+  </footer>
 
-    <!-- JAVASCRIPT EXTERNO -->
-    <script src="js/api.js"></script>
-    <script src="js/main.js"></script>
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
