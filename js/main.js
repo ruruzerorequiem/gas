@@ -19,7 +19,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Contador del Carrito de Compras (Actualización simple)
     actualizarContadorCarrito();
+
+    // 3. Indicador de Usuario en Sesión en el Navbar
+    actualizarEstadoSesionUI();
 });
+
+// Función para mostrar usuario logueado en el contenedor de la derecha
+function actualizarEstadoSesionUI() {
+    const sesionStr = localStorage.getItem('usuarioSesion');
+    const contenedores = document.querySelectorAll('#contenedorUsuarioHeader');
+
+    let sesion = null;
+    if (sesionStr) {
+        try {
+            sesion = JSON.parse(sesionStr);
+        } catch (e) {}
+    }
+
+    if (sesion && (sesion.nombre || sesion.email)) {
+        const nombreMostrar = sesion.nombre ? sesion.nombre.split(' ')[0] : sesion.email;
+        contenedores.forEach(c => {
+            c.innerHTML = `
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-outline-success fw-semibold dropdown-toggle btn-sm py-2 px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-fill-check me-1"></i> Hola, <strong>${nombreMostrar}</strong>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li><button class="dropdown-item small text-danger" onclick="cerrarSesionUsuario()"><i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión</button></li>
+                    </ul>
+                </div>
+            `;
+        });
+    } else {
+        contenedores.forEach(c => {
+            c.innerHTML = `
+                <a href="registro.html" class="btn btn-outline-secondary fw-semibold btn-sm py-2 px-3">
+                    <i class="bi bi-person me-1"></i> Ingreso / Registro
+                </a>
+            `;
+        });
+    }
+}
+
+function cerrarSesionUsuario() {
+    localStorage.removeItem('usuarioSesion');
+    actualizarEstadoSesionUI();
+    alert('Has cerrado sesión correctamente.');
+    if (window.location.pathname.endsWith('registro.html')) {
+        window.location.reload();
+    }
+}
 
 // Función simple para actualizar la cantidad de ítems en el carrito desde localStorage
 function actualizarContadorCarrito() {

@@ -1,196 +1,310 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Solicitud de pedido de gas licuado a domicilio en Chillán.">
-    <title>Solicitud de Pedido - Gas El Volcán</title>
-    
-    <!-- Hoja de estilos CSS externa -->
-    <link rel="stylesheet" href="css/styles.css">
-    
-    <style>
-        .tabla-carrito {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: #ffffff;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            border: 1px solid #ccc;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Confirmación de pedido de gas licuado en Chillán.">
+  <title>Gas El Volcán | Mis Pedidos</title>
 
-        .tabla-carrito th, .tabla-carrito td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ccc;
-        }
-
-        .tabla-carrito th {
-            background-color: #004085;
-            color: white;
-        }
-
-        .resumen-total {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 5px;
-            text-align: right;
-            border: 1px solid #ccc;
-        }
-    </style>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-    <!-- ENCABEZADO Y NAVEGACIÓN -->
-    <header>
-        <div class="header-container">
-            <a href="index.html" class="logo">🔥 Gas <span>El Volcán</span></a>
-            
-            <button class="menu-toggle" id="botonMenu" aria-label="Abrir Menú de Navegación">
-                &#9776;
-            </button>
-
-            <nav class="nav-menu" id="menuNavegacion">
-                <ul>
-                    <li><a href="index.html">Inicio</a></li>
-                    <li><a href="productos.html">Cilindros de Gas</a></li>
-                    <li><a href="registro.html">Ingreso / Registro</a></li>
-                    <li><a href="contacto.html">Contacto</a></li>
-                    <li><a href="carrito.html" class="activo">🛒 Mis Pedidos (<span class="cart-count">0</span>)</a></li>
-                </ul>
-            </nav>
+  <!-- ENCABEZADO Y NAVEGACIÓN -->
+  <header class="sticky-top shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-custom py-2">
+      <div class="container">
+        <a class="navbar-brand brand-volcan fs-4" href="index.html">
+          Gas <span>El Volcán</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold">
+            <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
+            <li class="nav-item"><a class="nav-link" href="productos.html">Cilindros de Gas</a></li>
+            <li class="nav-item"><a class="nav-link" href="contacto.html">Contacto</a></li>
+          </ul>
+          <div class="d-flex align-items-center gap-2">
+            <div id="contenedorUsuarioHeader">
+              <a href="registro.html" class="btn btn-outline-secondary fw-semibold btn-sm py-2 px-3">
+                <i class="bi bi-person me-1"></i> Ingreso / Registro
+              </a>
+            </div>
+            <a href="carrito.html" class="btn btn-danger fw-bold position-relative">
+              <i class="bi bi-cart3 me-1"></i> Mis Pedidos
+              <span class="badge bg-white text-danger rounded-pill cart-count ms-1">0</span>
+            </a>
+          </div>
         </div>
-    </header>
+      </div>
+    </nav>
+  </header>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main>
-        <h1 class="titulo-seccion">Solicitud de Pedido de Gas</h1>
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="py-4">
+    <div class="container">
+      <h1 class="display-6 fw-bold mb-4">Solicitud de Pedido de Gas</h1>
 
-        <div id="mensajePedido" class="mensaje-exito" style="display:none;"></div>
+      <div id="mensajePedido" class="alert alert-success d-none mb-4" role="alert"></div>
 
-        <div id="contenidoCarrito">
-            <table class="tabla-carrito">
-                <thead>
-                    <tr>
-                        <th>Cilindro</th>
-                        <th>Precio</th>
-                        <th>Cantidad</th>
-                        <th>Subtotal</th>
-                        <th>Acción</th>
-                    </tr>
+      <!-- ALERTA SI EL USUARIO NO HA INICIADO SESIÓN -->
+      <div id="alertaAuthCarrito" class="alert alert-warning border-warning d-none mb-4 shadow-sm" role="alert">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-exclamation-triangle-fill text-warning fs-3 me-3"></i>
+          <div>
+            <strong>¡Inicio de sesión requerido!</strong> No puedes confirmar compras sin antes registrarte o iniciar sesión.
+            <div class="mt-2">
+              <a href="registro.html" class="btn btn-sm btn-danger fw-bold me-2">Ir a Iniciar Sesión / Registrarse</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Tabla de ítems -->
+        <div class="col-lg-8">
+          <div class="card border rounded-3 p-3 mb-4">
+            <h2 class="h5 fw-bold mb-3">Detalle del Pedido</h2>
+            <div class="table-responsive">
+              <table class="table align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Cilindro / Producto</th>
+                    <th>Precio</th>
+                    <th class="text-center">Cant.</th>
+                    <th>Subtotal</th>
+                    <th class="text-center">Acción</th>
+                  </tr>
                 </thead>
                 <tbody id="filasCarrito">
-                    <!-- Filas generadas por JS -->
+                  <!-- Inyección por JS -->
                 </tbody>
-            </table>
-
-            <div class="form-grupo" style="text-align: left; max-width: 500px; margin-left: auto;">
-                <label for="direccionEntrega">Dirección de Entrega en Chillán *</label>
-                <input type="text" id="direccionEntrega" class="form-input" placeholder="Ej: Av. O'Higgins 1234, Chillán">
+              </table>
             </div>
-
-            <div class="resumen-total">
-                <h2>Total a Pagar: <span id="totalPagar" style="color: #28a745;">$0</span></h2>
-                <br>
-                <button class="btn btn-secundario" onclick="vaciarCarrito()">Vaciar Pedido</button>
-                <button class="btn" onclick="procesarPedido()">Confirmar Pedido (Enviar a /api/pedidos)</button>
-            </div>
+          </div>
         </div>
-    </main>
 
-    <!-- FOOTER INFORMATIVO -->
-    <footer>
-        <p>🔥 <strong>Distribuidora de Gas El Volcán</strong> - Chillán, Región del Ñuble</p>
-        <p>&copy; 2026 Proyecto DSY1104 - Desarrollo Fullstack II (Forma C)</p>
-    </footer>
+        <!-- Formulario Datos del Despacho -->
+        <div class="col-lg-4">
+          <div class="card border rounded-3 p-4">
+            <h2 class="h5 fw-bold mb-3">Datos del Despacho</h2>
+            
+            <div class="mb-3">
+              <label for="direccionEntrega" class="form-label fw-semibold">Dirección en Chillán / Comuna *</label>
+              <input type="text" id="direccionEntrega" class="form-control" placeholder="Calle, número, depto o villa">
+              <div class="invalid-feedback" id="error-direccionEntrega">Ingresa tu dirección de entrega.</div>
+            </div>
 
-    <!-- JAVASCRIPT EXTERNO -->
-    <script src="js/api.js"></script>
-    <script src="js/main.js"></script>
+            <!-- SELECCIÓN DE ZONA DE DESPACHO (IMAGEN 2) -->
+            <div class="mb-3">
+              <label for="zonaEntrega" class="form-label fw-semibold">Zona de Cobertura / Despacho *</label>
+              <select id="zonaEntrega" class="form-select" onchange="actualizarInfoZona()">
+                <option value="" selected disabled>Selecciona tu zona o comuna...</option>
+                <option value="Zona Centro" data-tiempo="1 – 3 horas" data-dias="Lunes a Sábado (08:00 – 20:00)">Zona Centro - Chillán (Centro, Norte, Sur)</option>
+                <option value="Zona Oriente" data-tiempo="2 – 4 horas" data-dias="Lunes a Viernes (08:00 – 18:00)">Zona Oriente - Chillán Oriente / Chillán Viejo</option>
+                <option value="Zona Rural" data-tiempo="3 – 6 horas" data-dias="Martes y Jueves (08:00 – 16:00)">Zona Rural - El Carmen, Pinto, San Ignacio</option>
+                <option value="Zona Sur" data-tiempo="4 – 6 horas" data-dias="Miércoles (08:00 – 16:00)">Zona Sur - Bulnes, Quillón</option>
+                <option value="Zona Comercial" data-tiempo="Según agenda" data-dias="Lunes a Viernes (07:00 – 17:00)">Zona Comercial - Parques Industriales / Locales</option>
+              </select>
+              <div class="invalid-feedback" id="error-zonaEntrega">Selecciona tu zona de despacho.</div>
+            </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', renderizarCarrito);
+            <!-- INFORMACIÓN SIMPLE DE TIEMPO ESTIMADO -->
+            <div id="infoZonaBox" class="p-2 border rounded bg-light small d-none mb-3">
+              <div><strong>Tiempo estimado:</strong> <span id="txtTiempoZona">-</span></div>
+              <div class="text-muted" id="txtDiasZona"></div>
+            </div>
 
-        function renderizarCarrito() {
-            const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-            const filas = document.getElementById('filasCarrito');
-            const totalElemento = document.getElementById('totalPagar');
+            <div class="mb-3">
+              <label for="metodoPago" class="form-label fw-semibold">Método de Pago *</label>
+              <select id="metodoPago" class="form-select">
+                <option value="Efectivo al Repartidor" selected>Efectivo al Repartidor</option>
+                <option value="Tarjeta Débito / Crédito">Tarjeta Débito / Crédito</option>
+                <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+              </select>
+            </div>
 
-            if (carrito.length === 0) {
-                filas.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No has agregado cilindros a tu pedido. <a href="productos.html">Ir a ver cilindros</a></td></tr>`;
-                totalElemento.textContent = '$0';
-                return;
-            }
+            <hr>
 
-            let total = 0;
-            filas.innerHTML = carrito.map((prod, index) => {
-                const subtotal = prod.precio * prod.cantidad;
-                total += subtotal;
-                return `
-                    <tr>
-                        <td>
-                            <div style="display:flex; align-items:center; gap: 10px;">
-                                <img src="${prod.imagen}" alt="${prod.nombre}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
-                                <strong>${prod.nombre}</strong>
-                            </div>
-                        </td>
-                        <td>$${prod.precio.toLocaleString('es-CL')}</td>
-                        <td>${prod.cantidad}</td>
-                        <td>$${subtotal.toLocaleString('es-CL')}</td>
-                        <td><button class="btn btn-secundario" style="padding: 4px 8px; font-size: 12px;" onclick="eliminarProducto(${index})">Quitar</button></td>
-                    </tr>
-                `;
-            }).join('');
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="fw-bold">Total a pagar:</span>
+              <span class="fs-4 fw-bold text-danger" id="totalPagar">$0</span>
+            </div>
 
-            totalElemento.textContent = `$${total.toLocaleString('es-CL')}`;
+            <button class="btn btn-danger w-100 fw-bold mb-2 py-2" onclick="procesarPedido()">
+              Confirmar Pedido
+            </button>
+            <button class="btn btn-outline-secondary w-100 btn-sm" onclick="vaciarCarrito()">
+              Vaciar Pedido
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer-custom py-4 mt-auto">
+    <div class="container text-center">
+      <p class="mb-0"><strong>Distribuidora de Gas El Volcán</strong> - Chillán, Región del Ñuble</p>
+      <small class="text-secondary">&copy; 2026 Proyecto DSY1104 - Desarrollo Fullstack II (Forma C)</small>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', renderizarCarrito);
+
+    function renderizarCarrito() {
+      const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+      const filas = document.getElementById('filasCarrito');
+      const totalElemento = document.getElementById('totalPagar');
+      const alertaAuth = document.getElementById('alertaAuthCarrito');
+
+      // Verificar si el usuario ha iniciado sesión
+      const sesionStr = localStorage.getItem('usuarioSesion');
+      if (!sesionStr && alertaAuth) {
+        alertaAuth.classList.remove('d-none');
+      } else if (alertaAuth) {
+        alertaAuth.classList.add('d-none');
+      }
+
+      if (carrito.length === 0) {
+        filas.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No has agregado cilindros a tu pedido. <a href="productos.html" class="fw-bold text-danger">Ver catálogo</a></td></tr>`;
+        totalElemento.textContent = '$0';
+        return;
+      }
+
+      let total = 0;
+      filas.innerHTML = carrito.map((prod, index) => {
+        const subtotal = prod.precio * prod.cantidad;
+        total += subtotal;
+        return `
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <img src="${prod.imagen}" alt="${prod.nombre}" style="width: 40px; height: 40px; object-fit: contain;">
+                <span class="fw-bold">${prod.nombre}</span>
+              </div>
+            </td>
+            <td>$${prod.precio.toLocaleString('es-CL')}</td>
+            <td class="text-center">${prod.cantidad}</td>
+            <td class="fw-bold text-danger">$${subtotal.toLocaleString('es-CL')}</td>
+            <td class="text-center">
+              <button class="btn btn-outline-danger btn-sm" onclick="eliminarProducto(${index})">
+                Quitar
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      totalElemento.textContent = `$${total.toLocaleString('es-CL')}`;
+    }
+
+    function actualizarInfoZona() {
+      const select = document.getElementById('zonaEntrega');
+      const box = document.getElementById('infoZonaBox');
+      const txtTiempo = document.getElementById('txtTiempoZona');
+      const txtDias = document.getElementById('txtDiasZona');
+
+      const opcion = select.options[select.selectedIndex];
+      if (opcion && opcion.value) {
+        txtTiempo.textContent = opcion.getAttribute('data-tiempo');
+        txtDias.textContent = opcion.getAttribute('data-dias');
+        box.classList.remove('d-none');
+        select.classList.remove('is-invalid');
+      }
+    }
+
+    function eliminarProducto(index) {
+      let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+      carrito.splice(index, 1);
+      localStorage.setItem('carrito', JSON.stringify(carrito));
+      renderizarCarrito();
+      actualizarContadorCarrito();
+    }
+
+    function vaciarCarrito() {
+      localStorage.removeItem('carrito');
+      renderizarCarrito();
+      actualizarContadorCarrito();
+    }
+
+    async function procesarPedido() {
+      // 1. Verificar Autenticación de Usuario (localStorage)
+      const sesionStr = localStorage.getItem('usuarioSesion');
+      const alertaAuth = document.getElementById('alertaAuthCarrito');
+
+      if (!sesionStr) {
+        if (alertaAuth) {
+          alertaAuth.classList.remove('d-none');
+          alertaAuth.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+        alert('Debes iniciar sesión o registrarte antes de poder confirmar y realizar una compra.');
+        return;
+      }
 
-        function eliminarProducto(index) {
-            let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-            carrito.splice(index, 1);
-            localStorage.setItem('carrito', JSON.stringify(carrito));
-            renderizarCarrito();
-            actualizarContadorCarrito();
-        }
+      const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+      const direccionInput = document.getElementById('direccionEntrega');
+      const zonaSelect = document.getElementById('zonaEntrega');
+      const metodoPago = document.getElementById('metodoPago').value;
+      
+      const direccion = direccionInput.value.trim();
+      const zona = zonaSelect.value;
 
-        function vaciarCarrito() {
-            localStorage.removeItem('carrito');
-            renderizarCarrito();
-            actualizarContadorCarrito();
-        }
+      let esValido = true;
 
-        async function procesarPedido() {
-            const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-            const direccion = document.getElementById('direccionEntrega').value.trim();
+      if (carrito.length === 0) {
+        alert('Debe agregar al menos un cilindro de gas.');
+        return;
+      }
 
-            if (carrito.length === 0) {
-                alert('Debe agregar al menos un cilindro de gas.');
-                return;
-            }
+      if (direccion === '') {
+        direccionInput.classList.add('is-invalid');
+        esValido = false;
+      } else {
+        direccionInput.classList.remove('is-invalid');
+      }
 
-            if (direccion === '') {
-                alert('Por favor ingresa tu dirección de entrega en Chillán.');
-                return;
-            }
+      if (!zona) {
+        zonaSelect.classList.add('is-invalid');
+        esValido = false;
+      } else {
+        zonaSelect.classList.remove('is-invalid');
+      }
 
-            const datosPedido = {
-                fecha: new Date().toISOString(),
-                direccion: direccion,
-                productos: carrito,
-                total: carrito.reduce((acc, p) => acc + (p.precio * p.cantidad), 0)
-            };
+      if (!esValido) return;
 
-            // Envía los datos al Microservicio de Pedidos (/api/pedidos) en formato JSON (Requisito 0.4)
-            const respuestaAPI = await crearPedidoAPI(datosPedido);
+      const opcionZona = zonaSelect.options[zonaSelect.selectedIndex];
+      const tiempoEstimado = opcionZona.getAttribute('data-tiempo');
 
-            const mensajeBox = document.getElementById('mensajePedido');
-            mensajeBox.innerHTML = `<strong>¡Pedido de Gas Confirmado!</strong> ${respuestaAPI.mensaje} (Código de Pedido: #${respuestaAPI.idPedido})`;
-            mensajeBox.style.display = 'block';
+      const datosPedido = {
+        fecha: new Date().toISOString(),
+        usuario: JSON.parse(sesionStr),
+        direccion: direccion,
+        zona: zona,
+        tiempoEstimado: tiempoEstimado,
+        metodoPago: metodoPago,
+        productos: carrito,
+        total: document.getElementById('totalPagar').textContent
+      };
 
-            vaciarCarrito();
-            document.getElementById('direccionEntrega').value = '';
-        }
-    </script>
+      const respuestaAPI = await crearPedidoAPI(datosPedido);
+
+      const mensajeBox = document.getElementById('mensajePedido');
+      mensajeBox.innerHTML = `<strong>¡Pedido Confirmado!</strong> ${respuestaAPI.mensaje} (Código: #${respuestaAPI.idPedido}) | <strong>Zona:</strong> ${zona} (${tiempoEstimado})`;
+      mensajeBox.classList.remove('d-none');
+
+      vaciarCarrito();
+      direccionInput.value = '';
+      zonaSelect.selectedIndex = 0;
+      document.getElementById('infoZonaBox').classList.add('d-none');
+    }
+  </script>
 </body>
 </html>
