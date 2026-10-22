@@ -6,11 +6,32 @@
    - Microservicio Pedidos: http://localhost:8083/api/pedidos
    ========================================================================== */
 
+// En desarrollo se usan los microservicios locales; en producción solo si se
+// definen las variables VITE_API_* (ver .env.example). Sin URL, la app usa
+// los datos locales (catálogo + LocalStorage) y no hace peticiones fallidas.
+const ENV = import.meta.env;
+const DEV = ENV.DEV;
+
 export const API_CONFIG = {
-  MICROSERVICIO_PRODUCTOS: 'http://localhost:8081/api/productos',
-  MICROSERVICIO_USUARIOS: 'http://localhost:8082/api/usuarios',
-  MICROSERVICIO_PEDIDOS: 'http://localhost:8083/api/pedidos'
+  MICROSERVICIO_PRODUCTOS: ENV.VITE_API_PRODUCTOS || (DEV ? 'http://localhost:8081/api/productos' : ''),
+  MICROSERVICIO_USUARIOS: ENV.VITE_API_USUARIOS || (DEV ? 'http://localhost:8082/api/usuarios' : ''),
+  MICROSERVICIO_PEDIDOS: ENV.VITE_API_PEDIDOS || (DEV ? 'http://localhost:8083/api/pedidos' : '')
 };
+
+// Tiempo máximo de espera de un microservicio antes de usar el respaldo local
+const TIMEOUT_MS = 3000;
+
+// fetch con timeout. Lanza error si no hay URL configurada o si no responde.
+async function llamarAPI(url, opciones = {}) {
+  if (!url) throw new Error('Microservicio no configurado');
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...opciones, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 export const DATOS_LOCAL_CATALOGO = {
   empresa: "Distribuidora de Gas El Volcán",
@@ -226,16 +247,11 @@ export function obtenerProductosLocalSync() {
 }
 
 export async function obtenerProductosAPI() {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 100);
-
   try {
-    const respuesta = await fetch(API_CONFIG.MICROSERVICIO_PRODUCTOS, { signal: controller.signal });
-    clearTimeout(timeoutId);
+    const respuesta = await llamarAPI(API_CONFIG.MICROSERVICIO_PRODUCTOS);
     if (!respuesta.ok) throw new Error();
     return await respuesta.json();
   } catch {
-    clearTimeout(timeoutId);
     return obtenerProductosLocalSync();
   }
 }
@@ -258,15 +274,11 @@ export function guardarUsuariosLocalStorage(usuarios) {
 
 export async function registrarUsuarioAPI(datosUsuario) {
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 100);
-    const respuesta = await fetch(API_CONFIG.MICROSERVICIO_USUARIOS, {
+    const respuesta = await llamarAPI(API_CONFIG.MICROSERVICIO_USUARIOS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(datosUsuario),
-      signal: controller.signal
+      body: JSON.stringify(datosUsuario)
     });
-    clearTimeout(timeoutId);
     if (respuesta.ok) return await respuesta.json();
     throw new Error();
   } catch {
@@ -301,15 +313,12 @@ export async function registrarUsuarioAPI(datosUsuario) {
 
 export async function iniciarSesionAPI(email, password) {
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 100);
-    const respuesta = await fetch(`${API_CONFIG.MICROSERVICIO_USUARIOS}/login`, {
+    const urlLogin = API_CONFIG.MICROSERVICIO_USUARIOS && `${API_CONFIG.MICROSERVICIO_USUARIOS}/login`;
+    const respuesta = await llamarAPI(urlLogin, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-      signal: controller.signal
+      body: JSON.stringify({ email, password })
     });
-    clearTimeout(timeoutId);
     if (respuesta.ok) return await respuesta.json();
     throw new Error();
   } catch {
@@ -348,7 +357,7 @@ export async function iniciarSesionAPI(email, password) {
 
 export async function crearPedidoAPI(datosPedido) {
   try {
-    const respuesta = await fetch(API_CONFIG.MICROSERVICIO_PEDIDOS, {
+    const respuesta = await llamarAPI(API_CONFIG.MICROSERVICIO_PEDIDOS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(datosPedido)

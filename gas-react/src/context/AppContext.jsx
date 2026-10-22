@@ -34,13 +34,11 @@ export function AppProvider({ children }) {
 
   const agregarAlCarrito = (id, nombre, precio, imagen) => {
     setCarrito(prev => {
-      let nuevo = [...prev];
-      const existente = nuevo.find(item => item.id === id);
-      if (existente) {
-        existente.cantidad += 1;
-      } else {
-        nuevo.push({ id, nombre, precio, imagen, cantidad: 1 });
-      }
+      const existe = prev.some(item => item.id === id);
+      // Se crean objetos nuevos (sin mutar el estado) para evitar sumar de más
+      const nuevo = existe
+        ? prev.map(item => item.id === id ? { ...item, cantidad: item.cantidad + 1 } : item)
+        : [...prev, { id, nombre, precio, imagen, cantidad: 1 }];
       localStorage.setItem('carrito', JSON.stringify(nuevo));
       return nuevo;
     });
