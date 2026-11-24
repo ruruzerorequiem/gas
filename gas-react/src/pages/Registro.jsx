@@ -218,45 +218,6 @@ export default function Registro() {
                       Ingresar
                     </button>
                   </form>
-
-                  {/* Acceso Rápido para Pruebas del Evaluador / Estudiante */}
-                  <div className="mt-4 p-3 bg-light rounded border">
-                    <p className="small fw-bold text-muted mb-2">
-                      <i className="bi bi-key-fill text-warning me-1"></i> Cuentas de Prueba Evaluativas (Spring Boot + JWT):
-                    </p>
-                    <div className="d-flex flex-wrap gap-1">
-                      <button
-                        type="button"
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => {
-                          setLoginEmail('admin@gaselvolcan.cl');
-                          setLoginPassword('admin123');
-                        }}
-                      >
-                        <i className="bi bi-shield-check me-1"></i> Admin
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-outline-primary btn-sm"
-                        onClick={() => {
-                          setLoginEmail('operadora@gaselvolcan.cl');
-                          setLoginPassword('opera123');
-                        }}
-                      >
-                        <i className="bi bi-headset me-1"></i> Operadora
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-outline-success btn-sm"
-                        onClick={() => {
-                          setLoginEmail('cliente@gmail.com');
-                          setLoginPassword('cliente123');
-                        }}
-                      >
-                        <i className="bi bi-person me-1"></i> Cliente
-                      </button>
-                    </div>
-                  </div>
                 </div>
               )}
 

@@ -3,42 +3,61 @@ import { useApp } from '../context/AppContext';
 import {
   obtenerTodosPedidosAPI,
   actualizarEstadoPedidoAPI,
+  cancelarPedidoAPI,
   obtenerProductosAPI,
   crearProductoAPI,
   actualizarProductoAPI,
-  eliminarProductoAPI
+  eliminarProductoAPI,
+  obtenerUsuariosAPI,
+  crearUsuarioAdminAPI,
+  actualizarUsuarioAPI,
+  desactivarUsuarioAPI
 } from '../api';
 
 export default function AdminPanel() {
   const { usuarioSesion, navegar, mostrarToast } = useApp();
 
-  const [tabActiva, setTabActiva] = useState('pedidos'); // 'pedidos' | 'productos'
+  const [tabActiva, setTabActiva] = useState('usuarios'); // 'usuarios' | 'pedidos' | 'productos'
+  const [usuarios, setUsuarios] = useState([]);
   const [pedidos, setPedidos] = useState([]);
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(false);
 
-  // Formulario para nuevo producto
-  const [nuevoNombre, setNuevoNombre] = useState('');
-  const [nuevaDesc, setNuevaDesc] = useState('');
-  const [nuevoPrecio, setNuevoPrecio] = useState('');
-  const [nuevoPeso, setNuevoPeso] = useState('11');
-  const [nuevoStock, setNuevoStock] = useState('50');
+  // Formulario nuevo usuario (Admin)
+  const [nuevoNombreUsuario, setNuevoNombreUsuario] = useState('');
+  const [nuevoUsername, setNuevoUsername] = useState('');
+  const [nuevoPassword, setNuevoPassword] = useState('');
+  const [nuevoRol, setNuevoRol] = useState('ROLE_CLIENTE');
+
+  // Formulario nuevo producto (Admin)
+  const [nuevoNombreProd, setNuevoNombreProd] = useState('');
+  const [nuevaDescProd, setNuevaDescProd] = useState('');
+  const [nuevoPrecioProd, setNuevoPrecioProd] = useState('');
+  const [nuevoPesoProd, setNuevoPesoProd] = useState('11');
+  const [nuevoStockProd, setNuevoStockProd] = useState('50');
 
   const rol = usuarioSesion?.rol;
   const esAdmin = rol === 'ROLE_ADMIN';
   const esOperadora = rol === 'ROLE_OPERADORA';
   const tieneAcceso = esAdmin || esOperadora;
 
-  // Cargar pedidos y productos
+  // Cargar todos los datos desde los 3 microservicios
   const cargarDatos = async () => {
     setCargando(true);
     try {
-      const [listaPedidos, listaProductos] = await Promise.all([
+      const promesas = [
         obtenerTodosPedidosAPI(),
         obtenerProductosAPI()
-      ]);
-      setPedidos(Array.isArray(listaPedidos) ? listaPedidos : []);
-      setProductos(Array.isArray(listaProductos) ? listaProductos : []);
+      ];
+      if (esAdmin) {
+        promesas.push(obtenerUsuariosAPI());
+      }
+      const resultados = await Promise.all(promesas);
+      setPedidos(Array.isArray(resultados[0]) ? resultados[0] : []);
+      setProductos(Array.isArray(resultados[1]) ? resultados[1] : []);
+      if (esAdmin && resultados[2]) {
+        setUsuarios(Array.isArray(resultados[2]) ? resultados[2] : []);
+      }
     } catch {
       mostrarToast('Error al conectar con los microservicios', 'error');
     } finally {
@@ -49,48 +68,128 @@ export default function AdminPanel() {
   useEffect(() => {
     if (tieneAcceso) {
       cargarDatos();
+      if (!esAdmin && tabActiva === 'usuarios') {
+        setTabActiva('pedidos');
+      }
     }
-  }, [tieneAcceso]);
+  }, [tieneAcceso, esAdmin]);
 
-  // Cambiar estado de un pedido (Ej: EN_CAMINO, ENTREGADO)
-  const handleCambiarEstado = async (idPedido, nuevoEstado) => {
+  // ------------------------------------------------------------------------
+  // CRUD USUARIOS (Solo ROLE_ADMIN)
+  // ------------------------------------------------------------------------
+  const handleCrearUsuario = async (e) => {
+    e.preventDefault();
+    if (!nuevoNombreUsuario.trim() || !nuevoUsername.trim() || !nuevoPassword.trim()) {
+      mostrarToast('Todos los campos son obligatorios para crear el usuario', 'warning');
+      return;
+    }
+    try {
+      await crearUsuarioAdminAPI({
+        nombreCompleto: nuevoNombreUsuario.trim(),
+        username: nuevoUsername.trim(),
+        password: nuevoPassword.trim(),
+        rol: nuevoRol,
+        activo: true
+      });
+      mostrarToast(`Usuario ${nuevoUsername} creado con éxito en MySQL`, 'success');
+      setNuevoNombreUsuario('');
+      setNuevoUsername('');
+      setNuevoPassword('');
+      cargarDatos();
+    } catch (err) {
+      mostrarToast('Error al crear usuario: ' + err.message, 'error');
+    }
+  };
+
+  const handleEditarUsuario = async (u) => {
+    const nuevoNombre = prompt(`Editar nombre completo de ${u.username}:`, u.nombreCompleto);
+    if (nuevoNombre === null) return;
+    const nuevoRolSeleccionado = prompt(`Editar Rol (ROLE_ADMIN, ROLE_OPERADORA, ROLE_REPARTIDOR, ROLE_CLIENTE):`, u.rol);
+    if (nuevoRolSeleccionado === null) return;
+
+    try {
+      await actualizarUsuarioAPI(u.id, {
+        nombreCompleto: nuevoNombre.trim() || u.nombreCompleto,
+        rol: nuevoRolSeleccionado.trim() || u.rol,
+        activo: u.activo
+      });
+      mostrarToast('Usuario actualizado correctamente', 'success');
+      cargarDatos();
+    } catch (err) {
+      mostrarToast('Error al actualizar: ' + err.message, 'error');
+    }
+  };
+
+  const handleToggleActivoUsuario = async (u) => {
+    const nuevoEstado = !u.activo;
+    const accion = nuevoEstado ? 'reactivar' : 'desactivar';
+    if (!window.confirm(`¿Seguro que deseas ${accion} la cuenta de ${u.username}?`)) return;
+
+    try {
+      await actualizarUsuarioAPI(u.id, {
+        nombreCompleto: u.nombreCompleto,
+        rol: u.rol,
+        activo: nuevoEstado
+      });
+      mostrarToast(`Usuario ${u.username} ${nuevoEstado ? 'activado' : 'desactivado'}`, 'info');
+      cargarDatos();
+    } catch (err) {
+      mostrarToast('Error al cambiar estado: ' + err.message, 'error');
+    }
+  };
+
+  // ------------------------------------------------------------------------
+  // GESTIÓN DE PEDIDOS (ROLE_ADMIN y ROLE_OPERADORA)
+  // ------------------------------------------------------------------------
+  const handleCambiarEstadoPedido = async (idPedido, nuevoEstado) => {
     try {
       await actualizarEstadoPedidoAPI(idPedido, nuevoEstado);
       mostrarToast(`Pedido #${idPedido} actualizado a: ${nuevoEstado}`, 'success');
       cargarDatos();
     } catch (err) {
-      mostrarToast('No se pudo cambiar el estado del pedido: ' + err.message, 'error');
+      mostrarToast('No se pudo cambiar el estado: ' + err.message, 'error');
     }
   };
 
-  // Crear producto nuevo (CRUD - Solo Admin)
+  const handleCancelarPedido = async (idPedido) => {
+    if (!window.confirm(`¿Seguro que deseas cancelar el Pedido #${idPedido}?`)) return;
+    try {
+      await cancelarPedidoAPI(idPedido);
+      mostrarToast(`Pedido #${idPedido} cancelado`, 'info');
+      cargarDatos();
+    } catch (err) {
+      mostrarToast('Error al cancelar pedido: ' + err.message, 'error');
+    }
+  };
+
+  // ------------------------------------------------------------------------
+  // CRUD PRODUCTOS (ROLE_ADMIN)
+  // ------------------------------------------------------------------------
   const handleCrearProducto = async (e) => {
     e.preventDefault();
-    if (!nuevoNombre.trim() || !nuevoPrecio) {
+    if (!nuevoNombreProd.trim() || !nuevoPrecioProd) {
       mostrarToast('Nombre y precio son obligatorios', 'warning');
       return;
     }
-
     try {
       await crearProductoAPI({
-        nombre: nuevoNombre,
-        descripcion: nuevaDesc,
-        precio: Number(nuevoPrecio),
-        pesoKg: Number(nuevoPeso),
-        stock: Number(nuevoStock),
+        nombre: nuevoNombreProd,
+        descripcion: nuevaDescProd,
+        precio: Number(nuevoPrecioProd),
+        pesoKg: Number(nuevoPesoProd),
+        stock: Number(nuevoStockProd),
         imagen: '/img/cilindros.png'
       });
       mostrarToast('¡Producto agregado al catálogo exitosamente!', 'success');
-      setNuevoNombre('');
-      setNuevaDesc('');
-      setNuevoPrecio('');
+      setNuevoNombreProd('');
+      setNuevaDescProd('');
+      setNuevoPrecioProd('');
       cargarDatos();
     } catch (err) {
       mostrarToast('Error al crear producto: ' + err.message, 'error');
     }
   };
 
-  // Desactivar / Eliminar producto (CRUD - Solo Admin)
   const handleEliminarProducto = async (id) => {
     if (!window.confirm('¿Seguro que deseas desactivar este producto del catálogo?')) return;
     try {
@@ -102,7 +201,6 @@ export default function AdminPanel() {
     }
   };
 
-  // Rápida edición de stock (CRUD)
   const handleModificarStock = async (prod) => {
     const nuevo = prompt(`Ingresa el nuevo stock para "${prod.nombre}":`, prod.stock || prod.stockActual);
     if (nuevo === null || isNaN(nuevo)) return;
@@ -119,7 +217,7 @@ export default function AdminPanel() {
   };
 
   // ------------------------------------------------------------------------
-  // RESTRICCIÓN DE ACCESO POR ROLES (Requisito Evaluación 3 - IE3.3.3 / IE3.3.6)
+  // RESTRICCIÓN DE ACCESO
   // ------------------------------------------------------------------------
   if (!tieneAcceso) {
     return (
@@ -133,20 +231,10 @@ export default function AdminPanel() {
             <p className="text-muted mb-3">
               Esta sección está reservada exclusivamente para el personal de <strong>Operaciones</strong> y <strong>Administración</strong> de Gas El Volcán.
             </p>
-
             <div className="alert alert-warning text-start py-2 px-3 small mb-4">
               <i className="bi bi-info-circle-fill me-2"></i>
               Tu usuario actual tiene el rol: <strong>{rol || 'No autenticado (Invitado)'}</strong>.
             </div>
-
-            <p className="small text-muted mb-4">
-              Para ingresar a este panel con fines evaluativos, inicia sesión con las cuentas del personal:
-              <br />
-              <strong>Admin:</strong> admin@gaselvolcan.cl (Clave: admin123)
-              <br />
-              <strong>Operadora:</strong> operadora@gaselvolcan.cl (Clave: opera123)
-            </p>
-
             <div className="d-flex justify-content-center gap-2">
               <button className="btn btn-danger" onClick={() => navegar('registro')}>
                 <i className="bi bi-person-badge me-1"></i> Iniciar Sesión con Rol Autorizado
@@ -168,23 +256,31 @@ export default function AdminPanel() {
         <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2 border-bottom pb-3">
           <div>
             <div className="d-flex align-items-center gap-2">
-              <i className="bi bi-sliders2 fs-3 text-danger"></i>
+              <i className="bi bi-speedometer2 fs-3 text-danger"></i>
               <h1 className="h3 fw-bold mb-0" style={{ color: 'var(--gas-blue-dark)' }}>
-                Panel de Operaciones y Control
+                Dashboard de Administración y Control
               </h1>
             </div>
             <p className="text-muted small mb-0 mt-1">
-              Usuario en sesión: <strong>{usuarioSesion?.nombre || usuarioSesion?.username}</strong> |
+              Sesión activa: <strong>{usuarioSesion?.nombre || usuarioSesion?.username}</strong> |
               Rol: <span className="badge bg-danger ms-1">{rol}</span>
             </p>
           </div>
 
-          <div className="d-flex gap-2">
+          <div className="d-flex flex-wrap gap-2">
+            {esAdmin && (
+              <button
+                className={`btn ${tabActiva === 'usuarios' ? 'btn-danger' : 'btn-outline-secondary'} fw-semibold btn-sm`}
+                onClick={() => setTabActiva('usuarios')}
+              >
+                <i className="bi bi-people-fill me-1"></i> Control de Usuarios ({usuarios.length})
+              </button>
+            )}
             <button
               className={`btn ${tabActiva === 'pedidos' ? 'btn-danger' : 'btn-outline-secondary'} fw-semibold btn-sm`}
               onClick={() => setTabActiva('pedidos')}
             >
-              <i className="bi bi-truck me-1"></i> Pedidos Recibidos ({pedidos.length})
+              <i className="bi bi-truck me-1"></i> Control de Pedidos ({pedidos.length})
             </button>
             <button
               className={`btn ${tabActiva === 'productos' ? 'btn-danger' : 'btn-outline-secondary'} fw-semibold btn-sm`}
@@ -199,13 +295,143 @@ export default function AdminPanel() {
         </div>
 
         {/* ==================================================================
-            PESTAÑA 1: GESTIÓN DE PEDIDOS (Operadora y Admin)
+            TAB 1: CONTROL DE USUARIOS (CRUD COMPLETO - SOLO ADMIN)
+            ================================================================== */}
+        {tabActiva === 'usuarios' && esAdmin && (
+          <div className="row g-4">
+            {/* Formulario Crear Usuario */}
+            <div className="col-lg-4">
+              <div className="surface-card p-4">
+                <h2 className="h5 fw-bold mb-3" style={{ color: 'var(--gas-blue-dark)' }}>
+                  <i className="bi bi-person-plus-fill me-2 text-danger"></i>
+                  Crear Nuevo Usuario
+                </h2>
+                <form onSubmit={handleCrearUsuario}>
+                  <div className="mb-2">
+                    <label className="form-label small fw-semibold">Nombre Completo *</label>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="Ej: Marcelo Rios"
+                      value={nuevoNombreUsuario}
+                      onChange={(e) => setNuevoNombreUsuario(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label className="form-label small fw-semibold">Username / Email *</label>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="usuario@gaselvolcan.cl"
+                      value={nuevoUsername}
+                      onChange={(e) => setNuevoUsername(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label className="form-label small fw-semibold">Contraseña Inicial *</label>
+                    <input
+                      type="password"
+                      className="form-control form-control-sm"
+                      placeholder="Mínimo 6 caracteres"
+                      value={nuevoPassword}
+                      onChange={(e) => setNuevoPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label small fw-semibold">Rol Asignado *</label>
+                    <select
+                      className="form-select form-select-sm"
+                      value={nuevoRol}
+                      onChange={(e) => setNuevoRol(e.target.value)}
+                    >
+                      <option value="ROLE_CLIENTE">ROLE_CLIENTE (Cliente Web)</option>
+                      <option value="ROLE_OPERADORA">ROLE_OPERADORA (Call Center / Operaciones)</option>
+                      <option value="ROLE_REPARTIDOR">ROLE_REPARTIDOR (Chofer en Ruta)</option>
+                      <option value="ROLE_ADMIN">ROLE_ADMIN (Administrador Total)</option>
+                    </select>
+                  </div>
+                  <button type="submit" className="btn btn-danger btn-sm w-100 fw-bold py-2">
+                    <i className="bi bi-check-lg me-1"></i> Guardar Usuario en MySQL
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Tabla de Usuarios */}
+            <div className="col-lg-8">
+              <div className="surface-card p-4">
+                <h2 className="h5 fw-bold mb-3" style={{ color: 'var(--gas-blue-dark)' }}>
+                  Usuarios Registrados en Microservicio (Puerto 8081)
+                </h2>
+                <div className="table-responsive">
+                  <table className="table table-sm table-hover align-middle mb-0">
+                    <thead className="table-light">
+                      <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Username / Email</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th className="text-end">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {usuarios.map(u => {
+                        let rolBadge = 'bg-secondary';
+                        if (u.rol === 'ROLE_ADMIN') rolBadge = 'bg-danger';
+                        if (u.rol === 'ROLE_OPERADORA') rolBadge = 'bg-primary';
+                        if (u.rol === 'ROLE_REPARTIDOR') rolBadge = 'bg-warning text-dark';
+                        if (u.rol === 'ROLE_CLIENTE') rolBadge = 'bg-success';
+
+                        return (
+                          <tr key={u.id}>
+                            <td><strong>#{u.id}</strong></td>
+                            <td>{u.nombreCompleto}</td>
+                            <td><code>{u.username}</code></td>
+                            <td><span className={`badge ${rolBadge}`}>{u.rol}</span></td>
+                            <td>
+                              <span className={`badge ${u.activo ? 'bg-success-subtle text-success border border-success' : 'bg-danger-subtle text-danger border border-danger'}`}>
+                                {u.activo ? 'Activo' : 'Desactivado'}
+                              </span>
+                            </td>
+                            <td className="text-end">
+                              <button
+                                className="btn btn-outline-secondary btn-sm me-1"
+                                onClick={() => handleEditarUsuario(u)}
+                                title="Editar nombre o rol"
+                              >
+                                <i className="bi bi-pencil"></i>
+                              </button>
+                              <button
+                                className={`btn btn-sm ${u.activo ? 'btn-outline-danger' : 'btn-outline-success'}`}
+                                onClick={() => handleToggleActivoUsuario(u)}
+                                title={u.activo ? 'Desactivar usuario' : 'Activar usuario'}
+                              >
+                                <i className={`bi ${u.activo ? 'bi-person-dash' : 'bi-person-check'}`}></i>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==================================================================
+            TAB 2: CONTROL DE PEDIDOS
             ================================================================== */}
         {tabActiva === 'pedidos' && (
           <div className="surface-card p-4">
             <h2 className="h5 fw-bold mb-3" style={{ color: 'var(--gas-blue-dark)' }}>
               <i className="bi bi-card-checklist me-2 text-danger"></i>
-              Despacho de Cilindros en Chillán
+              Órdenes de Compra y Pedidos (Puerto 8083)
             </h2>
 
             {pedidos.length === 0 ? (
@@ -225,7 +451,7 @@ export default function AdminPanel() {
                       <th>Cant.</th>
                       <th>Total</th>
                       <th>Estado</th>
-                      <th>Acción Operadora / Chofer</th>
+                      <th>Acciones / Cambio de Estado</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -256,7 +482,7 @@ export default function AdminPanel() {
                               {p.estado === 'PENDIENTE' && (
                                 <button
                                   className="btn btn-outline-primary"
-                                  onClick={() => handleCambiarEstado(p.id, 'EN_CAMINO')}
+                                  onClick={() => handleCambiarEstadoPedido(p.id, 'EN_CAMINO')}
                                 >
                                   <i className="bi bi-truck me-1"></i> Despachar
                                 </button>
@@ -264,7 +490,7 @@ export default function AdminPanel() {
                               {p.estado === 'EN_CAMINO' && (
                                 <button
                                   className="btn btn-outline-success"
-                                  onClick={() => handleCambiarEstado(p.id, 'ENTREGADO')}
+                                  onClick={() => handleCambiarEstadoPedido(p.id, 'ENTREGADO')}
                                 >
                                   <i className="bi bi-check-circle me-1"></i> Entregar
                                 </button>
@@ -272,14 +498,14 @@ export default function AdminPanel() {
                               {p.estado !== 'ENTREGADO' && p.estado !== 'CANCELADO' && (
                                 <button
                                   className="btn btn-outline-danger"
-                                  onClick={() => handleCambiarEstado(p.id, 'CANCELADO')}
+                                  onClick={() => handleCancelarPedido(p.id)}
                                 >
                                   Cancelar
                                 </button>
                               )}
                               {p.estado === 'ENTREGADO' && (
                                 <span className="text-success small fw-semibold">
-                                  <i className="bi bi-check-all"></i> Pagado y Descontado
+                                  <i className="bi bi-check-all"></i> Entregado & Pagado
                                 </span>
                               )}
                             </div>
@@ -295,11 +521,10 @@ export default function AdminPanel() {
         )}
 
         {/* ==================================================================
-            PESTAÑA 2: CRUD DE PRODUCTOS (Solo Administrador)
+            TAB 3: CRUD DE PRODUCTOS
             ================================================================== */}
         {tabActiva === 'productos' && (
           <div className="row g-4">
-            {/* Formulario Crear Producto */}
             {esAdmin ? (
               <div className="col-lg-4">
                 <div className="surface-card p-4">
@@ -314,8 +539,8 @@ export default function AdminPanel() {
                         type="text"
                         className="form-control form-control-sm"
                         placeholder="Ej: Cilindro GLP 15 kg Plus"
-                        value={nuevoNombre}
-                        onChange={(e) => setNuevoNombre(e.target.value)}
+                        value={nuevoNombreProd}
+                        onChange={(e) => setNuevoNombreProd(e.target.value)}
                         required
                       />
                     </div>
@@ -325,8 +550,8 @@ export default function AdminPanel() {
                         className="form-control form-control-sm"
                         rows="2"
                         placeholder="Uso residencial o comercial..."
-                        value={nuevaDesc}
-                        onChange={(e) => setNuevaDesc(e.target.value)}
+                        value={nuevaDescProd}
+                        onChange={(e) => setNuevaDescProd(e.target.value)}
                       ></textarea>
                     </div>
                     <div className="row g-2 mb-2">
@@ -336,8 +561,8 @@ export default function AdminPanel() {
                           type="number"
                           className="form-control form-control-sm"
                           placeholder="16000"
-                          value={nuevoPrecio}
-                          onChange={(e) => setNuevoPrecio(e.target.value)}
+                          value={nuevoPrecioProd}
+                          onChange={(e) => setNuevoPrecioProd(e.target.value)}
                           required
                         />
                       </div>
@@ -346,8 +571,8 @@ export default function AdminPanel() {
                         <input
                           type="number"
                           className="form-control form-control-sm"
-                          value={nuevoPeso}
-                          onChange={(e) => setNuevoPeso(e.target.value)}
+                          value={nuevoPesoProd}
+                          onChange={(e) => setNuevoPesoProd(e.target.value)}
                         />
                       </div>
                     </div>
@@ -356,8 +581,8 @@ export default function AdminPanel() {
                       <input
                         type="number"
                         className="form-control form-control-sm"
-                        value={nuevoStock}
-                        onChange={(e) => setNuevoStock(e.target.value)}
+                        value={nuevoStockProd}
+                        onChange={(e) => setNuevoStockProd(e.target.value)}
                       />
                     </div>
                     <button type="submit" className="btn btn-danger btn-sm w-100 fw-bold py-2">
@@ -370,12 +595,11 @@ export default function AdminPanel() {
               <div className="col-lg-4">
                 <div className="alert alert-info small">
                   <i className="bi bi-info-circle me-1"></i>
-                  Tu rol de <strong>Operadora</strong> te permite visualizar el catálogo. La creación y eliminación de cilindros está reservada para el rol de <strong>Administrador</strong>.
+                  Tu rol de <strong>Operadora</strong> te permite visualizar el catálogo. La creación y edición está reservada para <strong>Administrador</strong>.
                 </div>
               </div>
             )}
 
-            {/* Tabla de Productos Existentes */}
             <div className={esAdmin ? 'col-lg-8' : 'col-lg-12'}>
               <div className="surface-card p-4">
                 <h2 className="h5 fw-bold mb-3" style={{ color: 'var(--gas-blue-dark)' }}>

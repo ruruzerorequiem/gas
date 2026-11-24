@@ -483,3 +483,90 @@ export async function asignarRepartidorPedidoAPI(id, repartidorUsername) {
     throw err;
   }
 }
+
+// Cancelar / Eliminar pedido
+export async function cancelarPedidoAPI(id) {
+  try {
+    const url = `${API_CONFIG.MICROSERVICIO_PEDIDOS}/api/pedidos/${id}`;
+    const resp = await llamarAPI(url, {
+      method: 'DELETE',
+      headers: obtenerHeaders(true)
+    });
+    if (!resp.ok) throw new Error("No tienes permisos para cancelar este pedido");
+    return await resp.json();
+  } catch (err) {
+    console.error("Error al cancelar pedido:", err);
+    throw err;
+  }
+}
+
+// --------------------------------------------------------------------------
+// CRUD DE USUARIOS (Microservicio Usuarios - 8081)
+// --------------------------------------------------------------------------
+
+// Obtener lista completa de usuarios
+export async function obtenerUsuariosAPI() {
+  try {
+    const url = `${API_CONFIG.MICROSERVICIO_USUARIOS}/api/usuarios`;
+    const resp = await llamarAPI(url, { headers: obtenerHeaders(true) });
+    if (!resp.ok) throw new Error("No se pudo obtener la lista de usuarios");
+    return await resp.json();
+  } catch (err) {
+    console.error("Error al listar usuarios:", err);
+    return [];
+  }
+}
+
+// Crear nuevo usuario desde el panel Admin
+export async function crearUsuarioAdminAPI(datosUsuario) {
+  try {
+    const url = `${API_CONFIG.MICROSERVICIO_USUARIOS}/api/usuarios`;
+    const resp = await llamarAPI(url, {
+      method: 'POST',
+      headers: obtenerHeaders(true),
+      body: JSON.stringify(datosUsuario)
+    });
+    if (!resp.ok) {
+      const errData = await resp.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al crear usuario en microservicio");
+    }
+    return await resp.json();
+  } catch (err) {
+    console.error("Error al crear usuario:", err);
+    throw err;
+  }
+}
+
+// Actualizar usuario existente (nombre, rol, estado activo, password opcional)
+export async function actualizarUsuarioAPI(id, datosActualizados) {
+  try {
+    const url = `${API_CONFIG.MICROSERVICIO_USUARIOS}/api/usuarios/${id}`;
+    const resp = await llamarAPI(url, {
+      method: 'PUT',
+      headers: obtenerHeaders(true),
+      body: JSON.stringify(datosActualizados)
+    });
+    if (!resp.ok) throw new Error("No se pudo actualizar el usuario");
+    return await resp.json();
+  } catch (err) {
+    console.error("Error al actualizar usuario:", err);
+    throw err;
+  }
+}
+
+// Desactivar / Eliminar usuario
+export async function desactivarUsuarioAPI(id) {
+  try {
+    const url = `${API_CONFIG.MICROSERVICIO_USUARIOS}/api/usuarios/${id}`;
+    const resp = await llamarAPI(url, {
+      method: 'DELETE',
+      headers: obtenerHeaders(true)
+    });
+    if (!resp.ok) throw new Error("No se pudo desactivar el usuario");
+    return await resp.json();
+  } catch (err) {
+    console.error("Error al desactivar usuario:", err);
+    throw err;
+  }
+}
+
