@@ -10,18 +10,15 @@
 
 const ENV = import.meta.env;
 
-// Detectar el host dinámicamente si estamos en el navegador para apuntar a la IP correcta del backend
-const hostBackend = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-  ? window.location.hostname
-  : 'localhost';
-
+// En producción en el servidor EC2, Nginx hace de Reverse Proxy en el puerto 80 hacia los microservicios.
+// Esto elimina problemas de puertos bloqueados en el firewall y problemas de CORS.
 export const API_CONFIG = {
-  MICROSERVICIO_USUARIOS: ENV?.VITE_API_USUARIOS || `http://${hostBackend}:8081`,
-  MICROSERVICIO_PRODUCTOS: ENV?.VITE_API_PRODUCTOS || `http://${hostBackend}:8082`,
-  MICROSERVICIO_PEDIDOS: ENV?.VITE_API_PEDIDOS || `http://${hostBackend}:8083`
+  MICROSERVICIO_USUARIOS: ENV?.VITE_API_USUARIOS || '',
+  MICROSERVICIO_PRODUCTOS: ENV?.VITE_API_PRODUCTOS || '',
+  MICROSERVICIO_PEDIDOS: ENV?.VITE_API_PEDIDOS || ''
 };
 
-const TIMEOUT_MS = 5000;
+const TIMEOUT_MS = 6000;
 
 // Función para obtener el token JWT guardado en el navegador
 export function obtenerTokenJWT() {
