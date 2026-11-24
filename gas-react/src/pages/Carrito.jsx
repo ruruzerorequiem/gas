@@ -406,34 +406,34 @@ export default function Carrito() {
       </div>
 
       {/* =====================================================================
-          MODAL: PAGO BANCO ESTADO (DISEÑO LIMPIO Y REAL)
+          MODAL: PAGO BANCO ESTADO (TEMA OSCURO INTEGRADO Y CON CONTRASTE)
           ===================================================================== */}
       {modalBancoEstadoAbierto && (
         <div className="custom-modal-backdrop">
           <div className="custom-modal-dialog" style={{ maxWidth: '440px' }}>
-            <div className="card shadow border-0" style={{ backgroundColor: '#ffffff', color: '#212529', borderRadius: '12px', overflow: 'hidden' }}>
+            <div className="custom-modal-content border-secondary shadow-lg">
               
-              {/* Header simple y real de BancoEstado */}
-              <div className="px-4 py-3 d-flex justify-content-between align-items-center" style={{ backgroundColor: '#002B49' }}>
+              {/* Header BancoEstado */}
+              <div className="custom-modal-header" style={{ backgroundColor: '#002B49', borderTopLeftRadius: '15px', borderTopRightRadius: '15px' }}>
                 <div className="d-flex align-items-center gap-2">
                   <span className="badge px-2 py-1" style={{ backgroundColor: '#FF8200', color: '#002B49', fontWeight: 'bold', fontSize: '0.9rem' }}>
                     BancoEstado
                   </span>
-                  <span className="text-white fw-semibold small">Pago en Línea</span>
+                  <span className="text-white fw-bold small">Pago en Línea</span>
                 </div>
                 <button type="button" className="btn-close btn-close-white" onClick={() => setModalBancoEstadoAbierto(false)}></button>
               </div>
 
-              <div className="p-4">
-                {/* Resumen del cobro claro y con contraste */}
-                <div className="p-3 mb-3 rounded" style={{ backgroundColor: '#f8f9fa', border: '1px solid #dee2e6' }}>
+              <div className="custom-modal-body">
+                {/* Cuadro de resumen oscuro con texto blanco nítido */}
+                <div className="p-3 mb-3 rounded" style={{ backgroundColor: '#131924', border: '1px solid #2e3a50' }}>
                   <div className="d-flex justify-content-between mb-1" style={{ fontSize: '0.85rem' }}>
-                    <span className="text-secondary">Comercio:</span>
-                    <strong className="text-dark">Gas El Volcán Chillán</strong>
+                    <span className="text-muted">Comercio:</span>
+                    <strong className="text-white">Gas El Volcán Chillán</strong>
                   </div>
                   <div className="d-flex justify-content-between align-items-center">
-                    <span className="text-secondary" style={{ fontSize: '0.85rem' }}>Total a pagar:</span>
-                    <span className="fw-bold fs-5 text-dark">${total.toLocaleString('es-CL')} CLP</span>
+                    <span className="text-muted" style={{ fontSize: '0.85rem' }}>Total a pagar:</span>
+                    <span className="fw-bold fs-5 text-warning">${total.toLocaleString('es-CL')} CLP</span>
                   </div>
                 </div>
 
@@ -441,11 +441,10 @@ export default function Carrito() {
                 {pasoBanco === 1 && (
                   <form onSubmit={handleValidarBancoPaso1}>
                     <div className="mb-3">
-                      <label className="form-label small fw-bold text-dark mb-1">RUT del Titular</label>
+                      <label className="form-label small fw-semibold text-white mb-1">RUT del Titular</label>
                       <input
                         type="text"
                         className="form-control"
-                        style={{ backgroundColor: '#ffffff', color: '#212529', border: '1px solid #ced4da' }}
                         placeholder="Ej: 19234567-8"
                         value={rutBanco}
                         onChange={(e) => setRutBanco(e.target.value)}
@@ -453,12 +452,11 @@ export default function Carrito() {
                       />
                     </div>
                     <div className="mb-3">
-                      <label className="form-label small fw-bold text-dark mb-1">Clave de Internet (4 dígitos)</label>
+                      <label className="form-label small fw-semibold text-white mb-1">Clave de Internet (4 dígitos)</label>
                       <input
                         type="password"
                         maxLength="4"
                         className="form-control"
-                        style={{ backgroundColor: '#ffffff', color: '#212529', border: '1px solid #ced4da' }}
                         placeholder="••••"
                         value={claveBanco}
                         onChange={(e) => setClaveBanco(e.target.value)}
@@ -466,10 +464,9 @@ export default function Carrito() {
                       />
                     </div>
                     <div className="mb-4">
-                      <label className="form-label small fw-bold text-dark mb-1">Tipo de Cuenta</label>
+                      <label className="form-label small fw-semibold text-white mb-1">Tipo de Cuenta</label>
                       <select
                         className="form-select"
-                        style={{ backgroundColor: '#ffffff', color: '#212529', border: '1px solid #ced4da' }}
                         value={tipoCuentaBanco}
                         onChange={(e) => setTipoCuentaBanco(e.target.value)}
                       >
@@ -490,11 +487,11 @@ export default function Carrito() {
                   </form>
                 )}
 
-                {/* PASO 2: BE PASS (SENCILLO Y LIMPIO) */}
+                {/* PASO 2: BE PASS */}
                 {pasoBanco === 2 && (
                   <form onSubmit={handleConfirmarPagoBanco}>
                     <div className="text-center mb-3">
-                      <h6 className="fw-bold text-dark mb-1">Confirmar con BE Pass</h6>
+                      <h6 className="fw-bold text-white mb-1">Confirmar con BE Pass</h6>
                       <p className="text-muted small mb-0">
                         Ingresa el código dinámico de tu app BancoEstado
                       </p>
@@ -504,15 +501,15 @@ export default function Carrito() {
                       <input
                         type="password"
                         maxLength="6"
-                        className="form-control text-center fs-4 fw-bold mx-auto"
-                        style={{ maxWidth: '200px', backgroundColor: '#ffffff', color: '#212529', border: '2px solid #FF8200', letterSpacing: '4px' }}
+                        className="form-control text-center fs-3 fw-bold mx-auto"
+                        style={{ maxWidth: '200px', borderColor: '#FF8200', letterSpacing: '4px' }}
                         placeholder="123456"
                         value={bePassCode}
                         onChange={(e) => setBePassCode(e.target.value)}
                         autoFocus
                         required
                       />
-                      <span className="text-muted small mt-1 d-block" style={{ fontSize: '0.75rem' }}>Prueba: 123456</span>
+                      <span className="text-muted small mt-2 d-block" style={{ fontSize: '0.75rem' }}>Prueba: 123456</span>
                     </div>
 
                     <div className="d-flex gap-2">
@@ -537,13 +534,13 @@ export default function Carrito() {
                     <i className="bi bi-check-circle-fill text-success fs-1 mb-2 d-block"></i>
                     <h5 className="fw-bold text-success mb-1">¡Pago Aprobado!</h5>
                     <p className="small text-muted mb-2">Comprobante #{Math.floor(Math.random() * 900000) + 100000}</p>
-                    <span className="text-muted small">Registrando pedido...</span>
+                    <span className="text-white small">Registrando pedido...</span>
                   </div>
                 )}
               </div>
 
-              <div className="py-2 px-3 bg-light text-center border-top" style={{ fontSize: '0.75rem', color: '#6c757d' }}>
-                <i className="bi bi-shield-lock me-1"></i> Transacción segura BancoEstado
+              <div className="custom-modal-footer justify-content-center text-muted small py-2" style={{ fontSize: '0.75rem' }}>
+                <i className="bi bi-shield-lock me-1 text-warning"></i> Transacción segura BancoEstado
               </div>
             </div>
           </div>
