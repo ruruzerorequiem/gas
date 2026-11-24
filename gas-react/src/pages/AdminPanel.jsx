@@ -181,14 +181,16 @@ export default function AdminPanel() {
 
   const confirmarEliminarProducto = (prod) => {
     setConfirmConfig({
-      titulo: 'Desactivar Producto',
-      mensaje: `¿Estás seguro de que deseas desactivar "${prod.nombre}" del catálogo comercial?`,
+      titulo: 'Eliminar Producto',
+      mensaje: `¿Estás seguro de que deseas eliminar permanentemente "${prod.nombre}" de la base de datos de productos?`,
       colorBoton: 'btn-danger',
-      textoBoton: 'Desactivar',
+      textoBoton: 'Eliminar de MySQL',
       accion: async () => {
         try {
           await eliminarProductoAPI(prod.id);
-          mostrarToast(`Producto "${prod.nombre}" desactivado`, 'info');
+          // Actualización inmediata del estado local para que desaparezca al instante de la UI
+          setProductos(prev => prev.filter(p => p.id !== prod.id));
+          mostrarToast(`Producto "${prod.nombre}" eliminado definitivamente`, 'success');
           setModalConfirmAbierto(false);
           cargarDatos();
         } catch (err) {
@@ -296,6 +298,8 @@ export default function AdminPanel() {
       accion: async () => {
         try {
           await desactivarUsuarioAPI(u.id, true);
+          // Actualización inmediata del estado local en React
+          setUsuarios(prev => prev.filter(item => item.id !== u.id));
           mostrarToast(`Usuario #${u.id} (${u.username}) eliminado definitivamente`, 'success');
           setModalConfirmAbierto(false);
           cargarDatos();
@@ -397,6 +401,8 @@ export default function AdminPanel() {
       accion: async () => {
         try {
           await cancelarPedidoAPI(p.id, true);
+          // Actualización inmediata del estado local en React
+          setPedidos(prev => prev.filter(item => item.id !== p.id));
           mostrarToast(`Pedido #${p.id} eliminado de la base de datos`, 'success');
           setModalConfirmAbierto(false);
           cargarDatos();

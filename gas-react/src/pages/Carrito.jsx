@@ -155,7 +155,10 @@ export default function Carrito() {
       setTimeout(async () => {
         setModalBancoEstadoAbierto(false);
         if (pedidoPendientePago) {
-          await ejecutarCreacionPedido(pedidoPendientePago, true);
+          await ejecutarCreacionPedido({
+            ...pedidoPendientePago,
+            pagoRegistrado: true
+          }, true);
         }
       }, 1500);
     }, 1500);

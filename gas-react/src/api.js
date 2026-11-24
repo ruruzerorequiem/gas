@@ -400,7 +400,9 @@ export async function crearPedidoAPI(datosPedido) {
       productoId: item ? Number(item.id) || 1 : 1,
       productoNombre: item ? item.nombre : 'Cilindro GLP 11 kg',
       precioUnitario: item ? Number(item.precio) || 12000 : 12000,
-      cantidad: item ? Number(item.cantidad) || 1 : 1
+      cantidad: item ? Number(item.cantidad) || 1 : 1,
+      pagoRegistrado: datosPedido.pagoRegistrado === true,
+      estado: datosPedido.pagoRegistrado ? 'ASIGNADO' : 'PENDIENTE'
     };
 
     const resp = await llamarAPI(url, {

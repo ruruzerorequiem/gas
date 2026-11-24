@@ -32,11 +32,16 @@ public class PedidoController {
     @PostMapping
     public ResponseEntity<Pedido> crearPedido(@RequestBody Pedido pedido, Authentication auth) {
         if (pedido.getClienteUsername() == null || pedido.getClienteUsername().isBlank()) {
-            pedido.setClienteUsername(auth.getName());
+            pedido.setClienteUsername(auth != null ? auth.getName() : "cliente");
         }
         pedido.setTotalPagar(pedido.getPrecioUnitario() * pedido.getCantidad());
-        pedido.setEstado("PENDIENTE");
-        pedido.setPagoRegistrado(false);
+        if (pedido.getEstado() == null || pedido.getEstado().isBlank()) {
+            pedido.setEstado("PENDIENTE");
+        }
+        // Si el cliente pagó por Banco Estado, se respeta pagoRegistrado = true
+        if (pedido.getPagoRegistrado() == null) {
+            pedido.setPagoRegistrado(false);
+        }
         pedido.setFechaCreacion(LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.CREATED).body(pedidoRepository.save(pedido));
     }

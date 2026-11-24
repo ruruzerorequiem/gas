@@ -78,11 +78,16 @@ public class ProductoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> desactivarProducto(@PathVariable Long id) {
+    public ResponseEntity<?> eliminarProducto(@PathVariable Long id, @RequestParam(defaultValue = "true") boolean permanente) {
         return productoRepository.findById(id).map(producto -> {
-            producto.setActivo(false);
-            productoRepository.save(producto);
-            return ResponseEntity.ok((Object) Map.of("mensaje", "Producto desactivado del catálogo"));
+            if (permanente) {
+                productoRepository.delete(producto);
+                return ResponseEntity.ok((Object) Map.of("mensaje", "Producto eliminado definitivamente de MySQL"));
+            } else {
+                producto.setActivo(false);
+                productoRepository.save(producto);
+                return ResponseEntity.ok((Object) Map.of("mensaje", "Producto desactivado del catálogo"));
+            }
         }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", "Producto no encontrado")));
     }
