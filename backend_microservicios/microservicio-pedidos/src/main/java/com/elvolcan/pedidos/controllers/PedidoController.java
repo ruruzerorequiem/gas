@@ -151,13 +151,18 @@ public class PedidoController {
                 .body(Map.of("error", "Pedido no encontrado")));
     }
 
-    // 10. Eliminar / Cancelar pedido (Admin u Operadora)
+    // 10. Eliminar pedido de forma definitiva de la BD o marcar como CANCELADO
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> cancelarPedido(@PathVariable Long id) {
+    public ResponseEntity<?> eliminarPedido(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean permanente) {
         return pedidoRepository.findById(id).map(pedido -> {
-            pedido.setEstado("CANCELADO");
-            pedidoRepository.save(pedido);
-            return ResponseEntity.ok((Object) Map.of("mensaje", "Pedido cancelado"));
+            if (permanente) {
+                pedidoRepository.delete(pedido);
+                return ResponseEntity.ok((Object) Map.of("mensaje", "Pedido eliminado definitivamente de MySQL"));
+            } else {
+                pedido.setEstado("CANCELADO");
+                pedidoRepository.save(pedido);
+                return ResponseEntity.ok((Object) Map.of("mensaje", "Pedido marcado como CANCELADO"));
+            }
         }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", "Pedido no encontrado")));
     }

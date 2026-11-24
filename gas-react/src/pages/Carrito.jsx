@@ -406,56 +406,66 @@ export default function Carrito() {
       </div>
 
       {/* =====================================================================
-          MODAL PERSONALIZADO: PASARELA SEGURA BANCO ESTADO (SIMULACIÓN REAL)
+          MODAL PERSONALIZADO: PASARELA SEGURA OFICIAL BANCO ESTADO
           ===================================================================== */}
       {modalBancoEstadoAbierto && (
         <div className="custom-modal-backdrop">
-          <div className="custom-modal-dialog" style={{ maxWidth: '480px' }}>
-            <div className="custom-modal-content border-warning shadow-lg" style={{ backgroundColor: '#ffffff', color: '#333333' }}>
-              {/* Encabezado característico Banco Estado */}
-              <div className="p-3 d-flex justify-content-between align-items-center" style={{ backgroundColor: '#002B49', color: '#fff', borderTopLeftRadius: '12px', borderTopRightRadius: '12px' }}>
-                <div className="d-flex align-items-center gap-2">
-                  <span className="badge bg-warning text-dark fw-bold fs-6">BE</span>
+          <div className="custom-modal-dialog" style={{ maxWidth: '520px' }}>
+            <div className="custom-modal-content border-0 shadow-lg" style={{ backgroundColor: '#ffffff', color: '#1a1a1a', borderRadius: '16px' }}>
+              {/* Encabezado Institucional Banco Estado */}
+              <div className="p-3 d-flex justify-content-between align-items-center" style={{ backgroundColor: '#002B49', color: '#fff', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}>
+                <div className="d-flex align-items-center gap-3">
+                  <div style={{ backgroundColor: '#FF8200', color: '#002B49', borderRadius: '8px', padding: '4px 10px', fontWeight: '900', fontSize: '1.1rem', letterSpacing: '-0.5px' }}>
+                    BancoEstado
+                  </div>
                   <div>
-                    <h4 className="h6 fw-bold mb-0 text-white">BancoEstado - Portal de Pago Seguro</h4>
-                    <span className="small text-warning" style={{ fontSize: '0.75rem' }}>Conexión API Encriptada SSL 256-Bit</span>
+                    <div className="fw-bold mb-0 text-white" style={{ fontSize: '0.95rem' }}>Botón de Pago Seguro - API Sandbox</div>
+                    <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.72rem', color: '#38bdf8' }}>
+                      <i className="bi bi-shield-fill-check"></i>
+                      <span>Certificado SSL SHA-256 | API Integración Bancaria v2.4</span>
+                    </div>
                   </div>
                 </div>
                 <button type="button" className="btn-close btn-close-white" onClick={() => setModalBancoEstadoAbierto(false)}></button>
               </div>
 
               <div className="p-4">
-                {/* Resumen del cobro */}
-                <div className="p-3 mb-3 rounded" style={{ backgroundColor: '#f0f4f8', border: '1px solid #d0dbe5' }}>
-                  <div className="d-flex justify-content-between small text-muted">
-                    <span>Comercio Adherido:</span>
-                    <strong className="text-dark">Distribuidora Gas El Volcán</strong>
-                  </div>
-                  <div className="d-flex justify-content-between small text-muted">
-                    <span>Monto a transferir:</span>
-                    <strong className="text-danger fs-5">${total.toLocaleString('es-CL')} CLP</strong>
+                {/* Cuadro de Resumen de Compra Gas El Volcán */}
+                <div className="p-3 mb-3 rounded-3" style={{ backgroundColor: '#F4F7FA', border: '1px solid #D9E2EC' }}>
+                  <div className="row g-1 small">
+                    <div className="col-6 text-muted">Comercio Adherido:</div>
+                    <div className="col-6 text-end fw-bold text-dark">Distribuidora Gas El Volcán</div>
+                    <div className="col-6 text-muted">RUT Comercio:</div>
+                    <div className="col-6 text-end text-dark">76.842.190-3</div>
+                    <div className="col-6 text-muted">Orden de Compra:</div>
+                    <div className="col-6 text-end text-dark">#VOLCAN-{Math.floor(Math.random() * 8000) + 1000}</div>
+                    <div className="col-12 border-top my-1 pt-1"></div>
+                    <div className="col-6 fs-6 fw-bold text-dark">Monto a Transferir:</div>
+                    <div className="col-6 text-end fs-5 fw-bold" style={{ color: '#E35205' }}>
+                      ${total.toLocaleString('es-CL')} CLP
+                    </div>
                   </div>
                 </div>
 
                 {/* PASO 1: LOGIN CLIENTE BANCO ESTADO */}
                 {pasoBanco === 1 && (
                   <form onSubmit={handleValidarBancoPaso1}>
-                    <p className="small text-muted mb-3">
-                      Ingresa tus datos bancarios para acceder a tu <strong>CuentaRUT o Chequera Electrónica</strong>:
-                    </p>
+                    <div className="alert alert-warning py-2 px-3 small mb-3 border-0" style={{ backgroundColor: '#FFF4E5', color: '#663C00' }}>
+                      <i className="bi bi-info-circle-fill me-1"></i> Ingresa tus credenciales de <strong>Banca en Línea Banco Estado</strong> para debitar de tu cuenta:
+                    </div>
                     <div className="mb-3">
-                      <label className="form-label small fw-bold text-dark">RUT del Titular *</label>
+                      <label className="form-label small fw-bold text-dark">RUT del Titular (sin puntos, con guion) *</label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="12.345.678-9"
+                        placeholder="18492114-K"
                         value={rutBanco}
                         onChange={(e) => setRutBanco(e.target.value)}
                         required
                       />
                     </div>
                     <div className="mb-3">
-                      <label className="form-label small fw-bold text-dark">Clave de Internet Banco Estado (4 dígitos) *</label>
+                      <label className="form-label small fw-bold text-dark">Clave de Internet BancoEstado (4 dígitos) *</label>
                       <input
                         type="password"
                         maxLength="4"
@@ -465,28 +475,31 @@ export default function Carrito() {
                         onChange={(e) => setClaveBanco(e.target.value)}
                         required
                       />
+                      <div className="small text-muted mt-1" style={{ fontSize: '0.75rem' }}>
+                        Simulador activo: ingresa cualquier clave de 4 dígitos (ej: <code>1234</code>).
+                      </div>
                     </div>
                     <div className="mb-4">
-                      <label className="form-label small fw-bold text-dark">Tipo de Cuenta de Origen</label>
+                      <label className="form-label small fw-bold text-dark">Cuenta Bancaria de Débito</label>
                       <select
                         className="form-select"
                         value={tipoCuentaBanco}
                         onChange={(e) => setTipoCuentaBanco(e.target.value)}
                       >
-                        <option value="CuentaRUT">CuentaRUT Banco Estado</option>
-                        <option value="CuentaCorriente">Cuenta Corriente Banco Estado</option>
+                        <option value="CuentaRUT">CuentaRUT (Débito Visa BancoEstado)</option>
+                        <option value="CuentaCorriente">Cuenta Corriente BancoEstado</option>
                         <option value="ChequeraElectronica">Chequera Electrónica</option>
                       </select>
                     </div>
 
                     <button
                       type="submit"
-                      className="btn w-100 fw-bold py-2 text-white"
-                      style={{ backgroundColor: '#E35205' }}
+                      className="btn w-100 fw-bold py-2 text-white shadow-sm"
+                      style={{ backgroundColor: '#FF8200' }}
                       disabled={procesandoBanco}
                     >
                       {procesandoBanco ? (
-                        <span><i className="bi bi-arrow-repeat spin me-2"></i>Verificando con Banco Estado...</span>
+                        <span><i className="bi bi-arrow-repeat spin me-2"></i>Conectando con Servidor BancoEstado...</span>
                       ) : (
                         'Continuar a Autorización'
                       )}
@@ -497,25 +510,32 @@ export default function Carrito() {
                 {/* PASO 2: BE PASS / SEGUNDO FACTOR DE AUTENTICACIÓN */}
                 {pasoBanco === 2 && (
                   <form onSubmit={handleConfirmarPagoBanco}>
-                    <div className="alert alert-info py-2 small mb-3">
-                      <i className="bi bi-phone-fill me-1"></i> Autorización BE Pass solicitada para <strong>{rutBanco}</strong>.
+                    <div className="text-center mb-3">
+                      <div className="d-inline-flex p-3 rounded-circle mb-2" style={{ backgroundColor: '#E1EBF5' }}>
+                        <i className="bi bi-shield-lock-fill fs-2" style={{ color: '#002B49' }}></i>
+                      </div>
+                      <h5 className="fw-bold mb-1" style={{ color: '#002B49' }}>Autorización con BE Pass</h5>
+                      <p className="small text-muted mb-0">
+                        Hemos enviado un desafío de seguridad a la App BancoEstado del RUT <strong>{rutBanco}</strong>.
+                      </p>
                     </div>
-                    <p className="small text-muted mb-3">
-                      Ingresa tu clave <strong>BE Pass</strong> de la App Banco Estado o clave dinámica de 6 dígitos para debitar <strong>${total.toLocaleString('es-CL')}</strong>:
-                    </p>
-                    <div className="mb-4">
-                      <label className="form-label small fw-bold text-dark">Código BE Pass (6 dígitos) *</label>
+
+                    <div className="mb-4 p-3 rounded-3 text-center" style={{ backgroundColor: '#F8FAFC', border: '1px dashed #CBD5E1' }}>
+                      <label className="form-label small fw-bold text-dark mb-2">Ingresa tu clave BE Pass de 6 dígitos *</label>
                       <input
                         type="password"
                         maxLength="6"
-                        className="form-control text-center fs-4 fw-bold letter-spacing-2"
+                        className="form-control text-center fs-3 fw-bold mx-auto"
+                        style={{ maxWidth: '240px', letterSpacing: '6px' }}
                         placeholder="123456"
                         value={bePassCode}
                         onChange={(e) => setBePassCode(e.target.value)}
                         autoFocus
                         required
                       />
-                      <div className="text-center small text-muted mt-1">Clave de prueba sugerida: <code>123456</code></div>
+                      <div className="small text-muted mt-2" style={{ fontSize: '0.78rem' }}>
+                        Clave de prueba sugerida: <code>123456</code>
+                      </div>
                     </div>
 
                     <div className="d-flex gap-2">
@@ -524,14 +544,14 @@ export default function Carrito() {
                       </button>
                       <button
                         type="submit"
-                        className="btn w-50 fw-bold text-white"
-                        style={{ backgroundColor: '#E35205' }}
+                        className="btn w-50 fw-bold text-white shadow-sm"
+                        style={{ backgroundColor: '#FF8200' }}
                         disabled={procesandoBanco}
                       >
                         {procesandoBanco ? (
-                          <span><i className="bi bi-arrow-repeat spin me-1"></i>Procesando...</span>
+                          <span><i className="bi bi-arrow-repeat spin me-1"></i>Validando...</span>
                         ) : (
-                          'Confirmar Pago'
+                          'Autorizar Pago'
                         )}
                       </button>
                     </div>
@@ -541,19 +561,25 @@ export default function Carrito() {
                 {/* PASO 3: PAGO EXITOSO */}
                 {pasoBanco === 3 && (
                   <div className="text-center py-4">
-                    <i className="bi bi-check-circle-fill text-success display-3 mb-2"></i>
-                    <h4 className="h5 fw-bold text-success mb-1">¡Pago Aprobado con Éxito!</h4>
+                    <div className="d-inline-flex p-3 rounded-circle mb-3" style={{ backgroundColor: '#DEF7EC' }}>
+                      <i className="bi bi-check-circle-fill text-success fs-1"></i>
+                    </div>
+                    <h4 className="h5 fw-bold text-success mb-1">¡Transferencia Aprobada Exitosamente!</h4>
                     <p className="small text-muted mb-3">
-                      Transacción Banco Estado #{Math.floor(Math.random() * 900000) + 100000} autorizada correctamente.
+                      Comprobante BancoEstado Nº <strong>BE-{Math.floor(Math.random() * 900000) + 100000}</strong>
                     </p>
+                    <div className="p-2 bg-light rounded small text-dark mb-3">
+                      Monto descontado: <strong>${total.toLocaleString('es-CL')} CLP</strong> desde {tipoCuentaBanco}
+                    </div>
                     <span className="spinner-border spinner-border-sm text-secondary me-2"></span>
-                    <span className="small text-muted">Generando despacho en Gas El Volcán...</span>
+                    <span className="small text-muted">Confirmando orden y agendando despacho en Chillán...</span>
                   </div>
                 )}
               </div>
 
-              <div className="p-3 bg-light text-center small text-muted border-top" style={{ borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
-                <i className="bi bi-lock-fill text-success me-1"></i> Transacción simulada e integrada según rúbrica evaluativa.
+              <div className="p-3 bg-light text-center small text-muted border-top d-flex justify-content-between align-items-center" style={{ borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', fontSize: '0.75rem' }}>
+                <span><i className="bi bi-bank me-1 text-primary"></i> Banco del Estado de Chile</span>
+                <span><i className="bi bi-lock-fill text-success me-1"></i> Transacción 100% Segura</span>
               </div>
             </div>
           </div>

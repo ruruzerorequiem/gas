@@ -518,15 +518,15 @@ export async function asignarRepartidorPedidoAPI(id, repartidorUsername) {
   }
 }
 
-// Cancelar / Eliminar pedido
-export async function cancelarPedidoAPI(id) {
+// Cancelar o Eliminar pedido definitivamente
+export async function cancelarPedidoAPI(id, permanente = false) {
   try {
-    const url = `${API_CONFIG.MICROSERVICIO_PEDIDOS}/api/pedidos/${id}`;
+    const url = `${API_CONFIG.MICROSERVICIO_PEDIDOS}/api/pedidos/${id}?permanente=${permanente}`;
     const resp = await llamarAPI(url, {
       method: 'DELETE',
       headers: obtenerHeaders(true)
     });
-    if (!resp.ok) throw new Error("No tienes permisos para cancelar este pedido");
+    if (!resp.ok) throw new Error("No tienes permisos para eliminar este pedido");
     return await resp.json();
   } catch (err) {
     console.error("Error al cancelar pedido:", err);
@@ -588,18 +588,18 @@ export async function actualizarUsuarioAPI(id, datosActualizados) {
   }
 }
 
-// Desactivar / Eliminar usuario
-export async function desactivarUsuarioAPI(id) {
+// Desactivar o Eliminar definitivamente a un usuario
+export async function desactivarUsuarioAPI(id, permanente = false) {
   try {
-    const url = `${API_CONFIG.MICROSERVICIO_USUARIOS}/api/usuarios/${id}`;
+    const url = `${API_CONFIG.MICROSERVICIO_USUARIOS}/api/usuarios/${id}?permanente=${permanente}`;
     const resp = await llamarAPI(url, {
       method: 'DELETE',
       headers: obtenerHeaders(true)
     });
-    if (!resp.ok) throw new Error("No se pudo desactivar el usuario");
+    if (!resp.ok) throw new Error("No se pudo eliminar el usuario");
     return await resp.json();
   } catch (err) {
-    console.error("Error al desactivar usuario:", err);
+    console.error("Error al eliminar usuario:", err);
     throw err;
   }
 }

@@ -602,7 +602,7 @@ footer.footer-custom a:hover {
 }
 
 /* ==========================================================================
-   MODALES PERSONALIZADOS (SIN ALERTS NI PROMPTS DE GOOGLE)
+   MODALES PERSONALIZADOS (SIN ALERTS NI PROMPTS DE GOOGLE - DISEÑO MODERNO)
    ========================================================================== */
 .custom-modal-backdrop {
   position: fixed;
@@ -610,34 +610,39 @@ footer.footer-custom a:hover {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(10, 14, 20, 0.85);
-  backdrop-filter: blur(4px);
+  background-color: rgba(5, 8, 14, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1050;
-  padding: 1rem;
-  animation: fadeInModal 0.2s ease-out;
+  z-index: 9999;
+  padding: 1.25rem;
+  animation: fadeInModal 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .custom-modal-dialog {
   width: 100%;
-  max-width: 650px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-width: 620px;
+  max-height: 92vh;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .custom-modal-content {
-  background-color: #1e2530;
-  border: 1px solid #334155;
-  border-radius: 12px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-  color: #e2e8f0;
+  background: linear-gradient(180deg, #1f2735 0%, #171d28 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  color: #f1f5f9;
+  overflow: hidden;
 }
 
 .custom-modal-header {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #334155;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -645,17 +650,20 @@ footer.footer-custom a:hover {
 
 .custom-modal-body {
   padding: 1.5rem;
+  max-height: calc(85vh - 130px);
+  overflow-y: auto;
 }
 
 .custom-modal-footer {
   padding: 1rem 1.5rem;
-  border-top: 1px solid #334155;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
 }
 
 @keyframes fadeInModal {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.94) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }

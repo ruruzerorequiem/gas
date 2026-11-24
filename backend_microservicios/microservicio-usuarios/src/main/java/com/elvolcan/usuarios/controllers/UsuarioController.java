@@ -62,11 +62,16 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> desactivarUsuario(@PathVariable Long id) {
+    public ResponseEntity<?> eliminarUsuario(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean permanente) {
         return usuarioRepository.findById(id).map(usuario -> {
-            usuario.setActivo(false);
-            usuarioRepository.save(usuario);
-            return ResponseEntity.ok((Object) Map.of("mensaje", "Usuario desactivado correctamente"));
+            if (permanente) {
+                usuarioRepository.delete(usuario);
+                return ResponseEntity.ok((Object) Map.of("mensaje", "Usuario eliminado definitivamente de MySQL"));
+            } else {
+                usuario.setActivo(false);
+                usuarioRepository.save(usuario);
+                return ResponseEntity.ok((Object) Map.of("mensaje", "Usuario desactivado correctamente"));
+            }
         }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", "Usuario no encontrado")));
     }

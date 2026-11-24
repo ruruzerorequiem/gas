@@ -267,8 +267,8 @@ export default function AdminPanel() {
     setConfirmConfig({
       titulo: `${u.activo ? 'Desactivar' : 'Activar'} Usuario`,
       mensaje: `¿Confirmas que deseas ${accion} la cuenta de acceso de ${u.nombreCompleto} (${u.username})?`,
-      colorBoton: u.activo ? 'btn-danger' : 'btn-success',
-      textoBoton: u.activo ? 'Desactivar' : 'Activar',
+      colorBoton: u.activo ? 'btn-warning text-dark' : 'btn-success',
+      textoBoton: u.activo ? 'Suspender Acceso' : 'Reactivar Acceso',
       accion: async () => {
         try {
           await actualizarUsuarioAPI(u.id, {
@@ -281,6 +281,26 @@ export default function AdminPanel() {
           cargarDatos();
         } catch (err) {
           mostrarToast('Error: ' + err.message, 'error');
+        }
+      }
+    });
+    setModalConfirmAbierto(true);
+  };
+
+  const confirmarEliminarUsuarioPermanente = (u) => {
+    setConfirmConfig({
+      titulo: `Eliminar Usuario Permanentemente`,
+      mensaje: `¡ATENCIÓN! Se eliminará definitivamente a "${u.nombreCompleto}" (${u.username}) de la base de datos MySQL. Esta acción no se puede deshacer.`,
+      colorBoton: 'btn-danger',
+      textoBoton: 'Eliminar de MySQL',
+      accion: async () => {
+        try {
+          await desactivarUsuarioAPI(u.id, true);
+          mostrarToast(`Usuario #${u.id} (${u.username}) eliminado definitivamente`, 'success');
+          setModalConfirmAbierto(false);
+          cargarDatos();
+        } catch (err) {
+          mostrarToast('Error al eliminar: ' + err.message, 'error');
         }
       }
     });
@@ -352,16 +372,36 @@ export default function AdminPanel() {
     setConfirmConfig({
       titulo: 'Cancelar Pedido #' + p.id,
       mensaje: `¿Deseas marcar como CANCELADO el pedido de ${p.clienteNombre || p.clienteUsername}?`,
-      colorBoton: 'btn-danger',
-      textoBoton: 'Cancelar Pedido',
+      colorBoton: 'btn-warning text-dark',
+      textoBoton: 'Marcar Cancelado',
       accion: async () => {
         try {
-          await cancelarPedidoAPI(p.id);
+          await cancelarPedidoAPI(p.id, false);
           mostrarToast(`Pedido #${p.id} cancelado`, 'info');
           setModalConfirmAbierto(false);
           cargarDatos();
         } catch (err) {
           mostrarToast('Error al cancelar: ' + err.message, 'error');
+        }
+      }
+    });
+    setModalConfirmAbierto(true);
+  };
+
+  const confirmarEliminarPedidoPermanente = (p) => {
+    setConfirmConfig({
+      titulo: 'Eliminar Pedido #' + p.id,
+      mensaje: `¿Estás seguro de que deseas eliminar permanentemente el Pedido #${p.id} de la base de datos MySQL?`,
+      colorBoton: 'btn-danger',
+      textoBoton: 'Eliminar de MySQL',
+      accion: async () => {
+        try {
+          await cancelarPedidoAPI(p.id, true);
+          mostrarToast(`Pedido #${p.id} eliminado de la base de datos`, 'success');
+          setModalConfirmAbierto(false);
+          cargarDatos();
+        } catch (err) {
+          mostrarToast('Error al eliminar: ' + err.message, 'error');
         }
       }
     });
@@ -489,19 +529,25 @@ export default function AdminPanel() {
                         </td>
                         <td className="text-end">
                           <button
-                            className="btn btn-outline-info btn-sm me-2"
+                            className="btn btn-outline-info btn-sm me-1"
                             onClick={() => abrirModalUsuario(u)}
                             title="Editar usuario"
                           >
-                            <i className="bi bi-pencil-square me-1"></i> Modificar
+                            <i className="bi bi-pencil-square"></i>
                           </button>
                           <button
-                            className={`btn btn-sm ${u.activo ? 'btn-outline-danger' : 'btn-outline-success'}`}
+                            className={`btn btn-sm me-1 ${u.activo ? 'btn-outline-warning' : 'btn-outline-success'}`}
                             onClick={() => confirmarToggleUsuario(u)}
-                            title={u.activo ? 'Desactivar cuenta' : 'Activar cuenta'}
+                            title={u.activo ? 'Suspender acceso' : 'Reactivar acceso'}
                           >
-                            <i className={`bi ${u.activo ? 'bi-person-dash' : 'bi-person-check'} me-1`}></i>
-                            {u.activo ? 'Suspender' : 'Activar'}
+                            <i className={`bi ${u.activo ? 'bi-person-dash' : 'bi-person-check'}`}></i>
+                          </button>
+                          <button
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => confirmarEliminarUsuarioPermanente(u)}
+                            title="Eliminar usuario definitivamente"
+                          >
+                            <i className="bi bi-trash"></i>
                           </button>
                         </td>
                       </tr>
@@ -579,21 +625,28 @@ export default function AdminPanel() {
                           </td>
                           <td className="text-end">
                             <button
-                              className="btn btn-outline-info btn-sm me-2"
+                              className="btn btn-outline-info btn-sm me-1"
                               onClick={() => abrirModalPedido(p)}
                               title="Modificar pedido completo"
                             >
-                              <i className="bi bi-pencil-square me-1"></i> Modificar
+                              <i className="bi bi-pencil-square"></i>
                             </button>
                             {p.estado !== 'CANCELADO' && p.estado !== 'ENTREGADO' && (
                               <button
-                                className="btn btn-outline-danger btn-sm"
+                                className="btn btn-outline-warning btn-sm me-1"
                                 onClick={() => confirmarCancelarPedido(p)}
-                                title="Cancelar pedido"
+                                title="Marcar como cancelado"
                               >
-                                Cancelar
+                                <i className="bi bi-x-circle"></i>
                               </button>
                             )}
+                            <button
+                              className="btn btn-outline-danger btn-sm"
+                              onClick={() => confirmarEliminarPedidoPermanente(p)}
+                              title="Eliminar pedido de la base de datos"
+                            >
+                              <i className="bi bi-trash"></i>
+                            </button>
                           </td>
                         </tr>
                       );
