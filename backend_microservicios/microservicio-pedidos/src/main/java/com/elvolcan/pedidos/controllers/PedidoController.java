@@ -158,17 +158,22 @@ public class PedidoController {
 
     // 10. Eliminar pedido de forma definitiva de la BD o marcar como CANCELADO
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminarPedido(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean permanente) {
-        return pedidoRepository.findById(id).map(pedido -> {
-            if (permanente) {
-                pedidoRepository.delete(pedido);
-                return ResponseEntity.ok((Object) Map.of("mensaje", "Pedido eliminado definitivamente de MySQL"));
-            } else {
-                pedido.setEstado("CANCELADO");
-                pedidoRepository.save(pedido);
-                return ResponseEntity.ok((Object) Map.of("mensaje", "Pedido marcado como CANCELADO"));
-            }
-        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", "Pedido no encontrado")));
+    public ResponseEntity<?> eliminarPedido(
+            @PathVariable("id") Long id,
+            @RequestParam(name = "permanente", defaultValue = "false") boolean permanente) {
+        java.util.Optional<Pedido> optPedido = pedidoRepository.findById(id);
+        if (optPedido.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Pedido no encontrado"));
+        }
+        Pedido pedido = optPedido.get();
+        if (permanente) {
+            pedidoRepository.delete(pedido);
+            return ResponseEntity.ok((Object) Map.of("mensaje", "Pedido eliminado definitivamente de MySQL"));
+        } else {
+            pedido.setEstado("CANCELADO");
+            pedidoRepository.save(pedido);
+            return ResponseEntity.ok((Object) Map.of("mensaje", "Pedido marcado como CANCELADO"));
+        }
     }
 }
