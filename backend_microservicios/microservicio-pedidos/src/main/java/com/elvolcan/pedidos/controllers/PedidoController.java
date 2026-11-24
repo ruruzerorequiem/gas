@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/pedidos")
@@ -161,19 +162,19 @@ public class PedidoController {
     public ResponseEntity<?> eliminarPedido(
             @PathVariable("id") Long id,
             @RequestParam(name = "permanente", defaultValue = "false") boolean permanente) {
-        java.util.Optional<Pedido> optPedido = pedidoRepository.findById(id);
-        if (optPedido.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Pedido no encontrado"));
+        Optional<Pedido> pedidoEncontrado = pedidoRepository.findById(id);
+        if (pedidoEncontrado.isPresent()) {
+            Pedido p = pedidoEncontrado.get();
+            if (permanente) {
+                pedidoRepository.delete(p);
+                return ResponseEntity.ok(Map.of("mensaje", "Pedido eliminado definitivamente de MySQL"));
+            } else {
+                p.setEstado("CANCELADO");
+                pedidoRepository.save(p);
+                return ResponseEntity.ok(Map.of("mensaje", "Pedido marcado como CANCELADO"));
+            }
         }
-        Pedido pedido = optPedido.get();
-        if (permanente) {
-            pedidoRepository.delete(pedido);
-            return ResponseEntity.ok((Object) Map.of("mensaje", "Pedido eliminado definitivamente de MySQL"));
-        } else {
-            pedido.setEstado("CANCELADO");
-            pedidoRepository.save(pedido);
-            return ResponseEntity.ok((Object) Map.of("mensaje", "Pedido marcado como CANCELADO"));
-        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "Pedido no encontrado"));
     }
 }
