@@ -9,10 +9,10 @@ Sistema web fullstack basado en microservicios independientes con **Java 21 + Sp
 
 | Recurso | Enlace / URL | Descripción |
 | :--- | :--- | :--- |
-| **Sitio Web en Vivo** | [http://52.55.228.10/](http://52.55.228.10/) | Tienda virtual, Carrito, Pagos BancoEstado y Panel de Gestión |
-| **Microservicio Usuarios (Swagger)** | [http://52.55.228.10:8081/swagger-ui.html](http://52.55.228.10:8081/swagger-ui.html) | Login, Registro, JWT y CRUD Usuarios |
-| **Microservicio Productos (Swagger)** | [http://52.55.228.10:8082/swagger-ui.html](http://52.55.228.10:8082/swagger-ui.html) | Catálogo de balones, CRUD de productos e inventario |
-| **Microservicio Pedidos (Swagger)** | [http://52.55.228.10:8083/swagger-ui.html](http://52.55.228.10:8083/swagger-ui.html) | Gestión de pedidos, trazabilidad y cobro BancoEstado |
+| **Sitio Web en Vivo** | [http://98.91.220.69/](http://98.91.220.69/) | Tienda virtual, Carrito, Pagos BancoEstado y Panel de Gestión |
+| **Microservicio Usuarios (Swagger)** | [http://98.91.220.69:8081/swagger-ui.html](http://98.91.220.69:8081/swagger-ui.html) | Login, Registro, JWT y CRUD Usuarios |
+| **Microservicio Productos (Swagger)** | [http://98.91.220.69:8082/swagger-ui.html](http://98.91.220.69:8082/swagger-ui.html) | Catálogo de balones, CRUD de productos e inventario |
+| **Microservicio Pedidos (Swagger)** | [http://98.91.220.69:8083/swagger-ui.html](http://98.91.220.69:8083/swagger-ui.html) | Gestión de pedidos, trazabilidad y cobro BancoEstado |
 
 ---
 
@@ -36,7 +36,7 @@ Para acceder a la máquina virtual donde corre toda la infraestructura del proye
 1. Abre **PowerShell** en tu computador Windows.
 2. Ejecuta el comando SSH indicando la ruta de la clave privada `.pem`:
    ```powershell
-   ssh -i "C:\Users\rodri\Downloads\gas-produccion.pem" ubuntu@52.55.228.10
+   ssh -i "C:\Users\rodri\Downloads\gas-produccion.pem" ubuntu@98.91.220.69
    ```
 3. **Verificar que los microservicios y puertos estén activos:**
    ```bash

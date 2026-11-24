@@ -1,6 +1,6 @@
 # Manual de Usuario y Guía Operativa - Gas El Volcán Chillán
 **Evaluación Parcial N° 3 - Desarrollo Fullstack II (DSY1104) | Duoc UC**  
-**Servidor de Producción en Vivo:** [http://52.55.228.10/](http://52.55.228.10/)
+**Servidor de Producción en Vivo:** [http://98.91.220.69/](http://98.91.220.69/)
 
 ---
 
@@ -39,7 +39,7 @@ En la pantalla de **Ingreso / Registro** encontrarás botones automáticos para 
 ## 2. Flujo Completo del Cliente (Paso a Paso)
 
 ### Paso 1: Explorar Catálogo y Agregar Cilindros
-1. Ingresa a la web: [http://52.55.228.10/](http://52.55.228.10/).
+1. Ingresa a la web: [http://98.91.220.69/](http://98.91.220.69/).
 2. Haz clic en la pestaña **"Cilindros de Gas"** en la barra superior.
 3. Observarás las tarjetas de productos con su respectiva fotografía, precio en CLP y stock disponible.
 4. Presiona el botón **"Agregar al Pedido"** en uno o varios cilindros (ej: Cilindro 11 kg y Cilindro 15 kg).
@@ -113,14 +113,14 @@ En esta pestaña, el Administrador puede gestionar todo el inventario:
 
 ### Demostración 1: Demostrar la Seguridad por Roles (RBAC)
 1. Cierra sesión y entra como **Cliente** (`cliente@gmail.com`).
-2. Intenta ingresar a la URL del panel: `http://52.55.228.10/admin`.
+2. Intenta ingresar a la URL del panel: `http://98.91.220.69/admin`.
 3. Muestra la pantalla bloqueada con el aviso de seguridad:
    *`⛔ Acceso Restringido: Esta vista requiere permisos de Administrador u Operadora. Tu rol actual es: ROLE_CLIENTE`*.
 
 ### Demostración 2: Demostrar que los Datos están en MySQL Real
 1. Abre PowerShell y conéctate por SSH:
    ```powershell
-   ssh -i "C:\Users\rodri\Downloads\gas-produccion.pem" ubuntu@52.55.228.10
+   ssh -i "C:\Users\rodri\Downloads\gas-produccion.pem" ubuntu@98.91.220.69
    ```
 2. Entra a MySQL:
    ```bash
@@ -134,6 +134,6 @@ En esta pestaña, el Administrador puede gestionar todo el inventario:
 4. El profesor verá el pedido que acabas de hacer reflejado en la base de datos con `pago_registrado = 1`.
 
 ### Demostración 3: Demostrar la Interacción de Swagger UI
-1. Abre en otra pestaña del navegador: [http://52.55.228.10:8082/swagger-ui.html](http://52.55.228.10:8082/swagger-ui.html).
+1. Abre en otra pestaña del navegador: [http://98.91.220.69:8082/swagger-ui.html](http://98.91.220.69:8082/swagger-ui.html).
 2. Despliega el endpoint `GET /api/productos` y haz clic en **"Try it out"** -> **"Execute"**.
 3. Muéstrale al profesor cómo el backend responde con el JSON de los cilindros en tiempo real.

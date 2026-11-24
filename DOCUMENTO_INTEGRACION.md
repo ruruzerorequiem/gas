@@ -2,7 +2,7 @@
 **Asignatura:** Desarrollo Fullstack II (DSY1104)  
 **Institución:** Duoc UC - Escuela de Informática y Telecomunicaciones  
 **Proyecto:** Sistema de Distribución y Comercio Electrónico "Gas El Volcán" (Chillán)  
-**Servidor de Producción AWS EC2:** `http://52.55.228.10/`  
+**Servidor de Producción AWS EC2:** `http://98.91.220.69/`  
 **Base de Datos del Servidor:** MySQL 8 Community Server  
 **Proxy Inverso y Web Server:** Nginx 1.24  
 **Lenguajes y Frameworks:** Java 21 (OpenJDK 64-Bit), Spring Boot 3 & 4, React 19, Vite, Bootstrap 5  
@@ -50,7 +50,7 @@ La solución sigue el patrón arquitectónico de **Reverse Proxy / API Gateway U
                                       ▼
              ┌──────────────────────────────────────────────────┐
              │            SERVIDOR AWS EC2 (Ubuntu 24)          │
-             │                   52.55.228.10                   │
+             │                   98.91.220.69                   │
              │                                                  │
              │   ┌──────────────────────────────────────────┐   │
              │   │             NGINX (Puerto 80)            │   │
@@ -210,9 +210,9 @@ Las contraseñas nunca se guardan en texto plano en la base de datos. Se utiliza
 Todos los servicios incorporan la especificación interactiva **OpenAPI 3 / Swagger UI**.
 
 ### Enlaces Directos de Swagger en Producción:
-* **Swagger Usuarios:** [http://52.55.228.10:8081/swagger-ui.html](http://52.55.228.10:8081/swagger-ui.html)
-* **Swagger Productos:** [http://52.55.228.10:8082/swagger-ui.html](http://52.55.228.10:8082/swagger-ui.html)
-* **Swagger Pedidos:** [http://52.55.228.10:8083/swagger-ui.html](http://52.55.228.10:8083/swagger-ui.html)
+* **Swagger Usuarios:** [http://98.91.220.69:8081/swagger-ui.html](http://98.91.220.69:8081/swagger-ui.html)
+* **Swagger Productos:** [http://98.91.220.69:8082/swagger-ui.html](http://98.91.220.69:8082/swagger-ui.html)
+* **Swagger Pedidos:** [http://98.91.220.69:8083/swagger-ui.html](http://98.91.220.69:8083/swagger-ui.html)
 
 ### Matriz Completa de Endpoints:
 
@@ -253,7 +253,7 @@ Todos los servicios incorporan la especificación interactiva **OpenAPI 3 / Swag
 El archivo clave que coordina la comunicación es `gas-react/src/api.js`:
 - **Detección Automática de IP y Proxy:**
   ```javascript
-  const IP_EC2 = '52.55.228.10';
+  const IP_EC2 = '98.91.220.69';
   const esMismaIp = typeof window !== 'undefined' && window.location.hostname === IP_EC2;
   const BASE_URL = esMismaIp ? '' : `http://${IP_EC2}`;
   ```
@@ -295,7 +295,7 @@ Para que cualquiera de los integrantes del grupo pueda ingresar al servidor en v
 1. Abrir **PowerShell** en tu computador.
 2. Navegar a la carpeta donde está tu clave `.pem` (o especificar la ruta completa):
    ```powershell
-   ssh -i "C:\Users\rodri\Downloads\gas-produccion.pem" ubuntu@52.55.228.10
+   ssh -i "C:\Users\rodri\Downloads\gas-produccion.pem" ubuntu@98.91.220.69
    ```
 3. **Comandos Útiles en la Instancia Ubuntu:**
    - **Ver puertos y servicios activos:**

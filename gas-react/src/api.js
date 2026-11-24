@@ -11,7 +11,7 @@
 const ENV = import.meta.env;
 
 // IP fija del servidor EC2 de producción donde corren los microservicios y Nginx
-const IP_EC2 = '52.55.228.10';
+const IP_EC2 = '98.91.220.69';
 
 // Si estamos navegando directo en la IP de EC2, usamos rutas relativas para el Reverse Proxy de Nginx.
 // Si estamos navegando desde Amplify (o localhost), usamos la IP fija de EC2 con HTTP.
