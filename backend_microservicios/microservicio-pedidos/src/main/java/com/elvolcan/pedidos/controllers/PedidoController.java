@@ -131,7 +131,27 @@ public class PedidoController {
                 .body(Map.of("error", "Pedido no encontrado")));
     }
 
-    // 9. Eliminar / Cancelar pedido (Admin u Operadora)
+    // 9. Actualización completa de pedido (Admin y Operadora pueden editar cliente, dirección, cantidad, repartidor, estado)
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizarPedidoCompleto(@PathVariable Long id, @RequestBody Pedido datos) {
+        return pedidoRepository.findById(id).map(pedido -> {
+            if (datos.getClienteNombre() != null) pedido.setClienteNombre(datos.getClienteNombre());
+            if (datos.getDireccionEntrega() != null) pedido.setDireccionEntrega(datos.getDireccionEntrega());
+            if (datos.getCantidad() != null && datos.getCantidad() > 0) {
+                pedido.setCantidad(datos.getCantidad());
+                if (pedido.getPrecioUnitario() != null) {
+                    pedido.setTotalPagar(pedido.getPrecioUnitario() * datos.getCantidad());
+                }
+            }
+            if (datos.getRepartidorUsername() != null) pedido.setRepartidorUsername(datos.getRepartidorUsername());
+            if (datos.getEstado() != null) pedido.setEstado(datos.getEstado().toUpperCase());
+            if (datos.getPagoRegistrado() != null) pedido.setPagoRegistrado(datos.getPagoRegistrado());
+            return ResponseEntity.ok((Object) pedidoRepository.save(pedido));
+        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "Pedido no encontrado")));
+    }
+
+    // 10. Eliminar / Cancelar pedido (Admin u Operadora)
     @DeleteMapping("/{id}")
     public ResponseEntity<?> cancelarPedido(@PathVariable Long id) {
         return pedidoRepository.findById(id).map(pedido -> {

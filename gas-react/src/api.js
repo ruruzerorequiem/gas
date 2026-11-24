@@ -484,6 +484,23 @@ export async function actualizarEstadoPedidoAPI(id, nuevoEstado) {
   }
 }
 
+// Actualizar pedido completo (Admin / Operadora)
+export async function actualizarPedidoCompletoAPI(id, datosPedido) {
+  try {
+    const url = `${API_CONFIG.MICROSERVICIO_PEDIDOS}/api/pedidos/${id}`;
+    const resp = await llamarAPI(url, {
+      method: 'PUT',
+      headers: obtenerHeaders(true),
+      body: JSON.stringify(datosPedido)
+    });
+    if (!resp.ok) throw new Error("Error al actualizar pedido");
+    return await resp.json();
+  } catch (err) {
+    console.error("Error al actualizar pedido completo:", err);
+    throw err;
+  }
+}
+
 // Asignar repartidor al pedido
 export async function asignarRepartidorPedidoAPI(id, repartidorUsername) {
   try {

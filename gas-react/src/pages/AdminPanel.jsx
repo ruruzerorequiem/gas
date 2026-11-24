@@ -3,7 +3,9 @@ import { useApp } from '../context/AppContext';
 import {
   obtenerTodosPedidosAPI,
   actualizarEstadoPedidoAPI,
+  actualizarPedidoCompletoAPI,
   cancelarPedidoAPI,
+  crearPedidoAPI,
   obtenerProductosAPI,
   crearProductoAPI,
   actualizarProductoAPI,
@@ -23,41 +25,74 @@ export default function AdminPanel() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(false);
 
-  // Formulario nuevo usuario (Admin)
-  const [nuevoNombreUsuario, setNuevoNombreUsuario] = useState('');
-  const [nuevoUsername, setNuevoUsername] = useState('');
-  const [nuevoPassword, setNuevoPassword] = useState('');
-  const [nuevoRol, setNuevoRol] = useState('ROLE_CLIENTE');
+  // Filtros y búsquedas
+  const [busqueda, setBusqueda] = useState('');
 
-  // Formulario nuevo producto (Admin)
-  const [nuevoNombreProd, setNuevoNombreProd] = useState('');
-  const [nuevaDescProd, setNuevaDescProd] = useState('');
-  const [nuevoPrecioProd, setNuevoPrecioProd] = useState('');
-  const [nuevoPesoProd, setNuevoPesoProd] = useState('11');
-  const [nuevoStockProd, setNuevoStockProd] = useState('50');
+  // -------------------------------------------------------------------------
+  // ESTADOS PARA MODALES PERSONALIZADOS (Sin alerts ni prompts por defecto)
+  // -------------------------------------------------------------------------
+  // Modal Producto (Crear o Editar)
+  const [modalProductoAbierto, setModalProductoAbierto] = useState(false);
+  const [productoEditando, setProductoEditando] = useState(null); // null = nuevo
+  const [formProd, setFormProd] = useState({
+    nombre: '',
+    descripcion: '',
+    precio: '',
+    pesoKg: '11',
+    stock: '50',
+    imagen: '/img/cilindros.png',
+    activo: true
+  });
+
+  // Modal Usuario (Crear o Editar)
+  const [modalUsuarioAbierto, setModalUsuarioAbierto] = useState(false);
+  const [usuarioEditando, setUsuarioEditando] = useState(null); // null = nuevo
+  const [formUser, setFormUser] = useState({
+    nombreCompleto: '',
+    username: '',
+    password: '',
+    rol: 'ROLE_CLIENTE',
+    activo: true
+  });
+
+  // Modal Pedido (Crear o Editar)
+  const [modalPedidoAbierto, setModalPedidoAbierto] = useState(false);
+  const [pedidoEditando, setPedidoEditando] = useState(null);
+  const [formPed, setFormPed] = useState({
+    clienteNombre: '',
+    direccionEntrega: '',
+    productoId: '',
+    cantidad: 1,
+    repartidorUsername: '',
+    estado: 'PENDIENTE',
+    pagoRegistrado: false
+  });
+
+  // Modal de Confirmación Genérico (eliminar o cambiar estado)
+  const [modalConfirmAbierto, setModalConfirmAbierto] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState({
+    titulo: '',
+    mensaje: '',
+    colorBoton: 'btn-danger',
+    textoBoton: 'Confirmar',
+    accion: () => {}
+  });
 
   const rol = usuarioSesion?.rol;
   const esAdmin = rol === 'ROLE_ADMIN';
   const esOperadora = rol === 'ROLE_OPERADORA';
   const tieneAcceso = esAdmin || esOperadora;
 
-  // Cargar todos los datos desde los 3 microservicios
+  // Cargar datos
   const cargarDatos = async () => {
     setCargando(true);
     try {
-      const promesas = [
-        obtenerTodosPedidosAPI(),
-        obtenerProductosAPI()
-      ];
-      if (esAdmin) {
-        promesas.push(obtenerUsuariosAPI());
-      }
-      const resultados = await Promise.all(promesas);
-      setPedidos(Array.isArray(resultados[0]) ? resultados[0] : []);
-      setProductos(Array.isArray(resultados[1]) ? resultados[1] : []);
-      if (esAdmin && resultados[2]) {
-        setUsuarios(Array.isArray(resultados[2]) ? resultados[2] : []);
-      }
+      const promesas = [obtenerTodosPedidosAPI(), obtenerProductosAPI()];
+      if (esAdmin) promesas.push(obtenerUsuariosAPI());
+      const res = await Promise.all(promesas);
+      setPedidos(Array.isArray(res[0]) ? res[0] : []);
+      setProductos(Array.isArray(res[1]) ? res[1] : []);
+      if (esAdmin && res[2]) setUsuarios(Array.isArray(res[2]) ? res[2] : []);
     } catch {
       mostrarToast('Error al conectar con los microservicios', 'error');
     } finally {
@@ -74,150 +109,267 @@ export default function AdminPanel() {
     }
   }, [tieneAcceso, esAdmin]);
 
-  // ------------------------------------------------------------------------
-  // CRUD USUARIOS (Solo ROLE_ADMIN)
-  // ------------------------------------------------------------------------
-  const handleCrearUsuario = async (e) => {
-    e.preventDefault();
-    if (!nuevoNombreUsuario.trim() || !nuevoUsername.trim() || !nuevoPassword.trim()) {
-      mostrarToast('Todos los campos son obligatorios para crear el usuario', 'warning');
-      return;
-    }
-    try {
-      await crearUsuarioAdminAPI({
-        nombreCompleto: nuevoNombreUsuario.trim(),
-        username: nuevoUsername.trim(),
-        password: nuevoPassword.trim(),
-        rol: nuevoRol,
+  // =========================================================================
+  // GESTIÓN PRODUCTOS
+  // =========================================================================
+  const abrirModalProducto = (prod = null) => {
+    if (prod) {
+      setProductoEditando(prod);
+      setFormProd({
+        nombre: prod.nombre || '',
+        descripcion: prod.descripcion || '',
+        precio: prod.precio || '',
+        pesoKg: prod.pesoKg || '11',
+        stock: prod.stock || prod.stockActual || 0,
+        imagen: prod.imagen || prod.imagenUrl || '/img/cilindros.png',
+        activo: prod.activo !== false
+      });
+    } else {
+      setProductoEditando(null);
+      setFormProd({
+        nombre: '',
+        descripcion: '',
+        precio: '',
+        pesoKg: '11',
+        stock: '50',
+        imagen: '/img/cilindros.png',
         activo: true
       });
-      mostrarToast(`Usuario ${nuevoUsername} creado con éxito en MySQL`, 'success');
-      setNuevoNombreUsuario('');
-      setNuevoUsername('');
-      setNuevoPassword('');
-      cargarDatos();
-    } catch (err) {
-      mostrarToast('Error al crear usuario: ' + err.message, 'error');
     }
+    setModalProductoAbierto(true);
   };
 
-  const handleEditarUsuario = async (u) => {
-    const nuevoNombre = prompt(`Editar nombre completo de ${u.username}:`, u.nombreCompleto);
-    if (nuevoNombre === null) return;
-    const nuevoRolSeleccionado = prompt(`Editar Rol (ROLE_ADMIN, ROLE_OPERADORA, ROLE_REPARTIDOR, ROLE_CLIENTE):`, u.rol);
-    if (nuevoRolSeleccionado === null) return;
-
-    try {
-      await actualizarUsuarioAPI(u.id, {
-        nombreCompleto: nuevoNombre.trim() || u.nombreCompleto,
-        rol: nuevoRolSeleccionado.trim() || u.rol,
-        activo: u.activo
-      });
-      mostrarToast('Usuario actualizado correctamente', 'success');
-      cargarDatos();
-    } catch (err) {
-      mostrarToast('Error al actualizar: ' + err.message, 'error');
-    }
-  };
-
-  const handleToggleActivoUsuario = async (u) => {
-    const nuevoEstado = !u.activo;
-    const accion = nuevoEstado ? 'reactivar' : 'desactivar';
-    if (!window.confirm(`¿Seguro que deseas ${accion} la cuenta de ${u.username}?`)) return;
-
-    try {
-      await actualizarUsuarioAPI(u.id, {
-        nombreCompleto: u.nombreCompleto,
-        rol: u.rol,
-        activo: nuevoEstado
-      });
-      mostrarToast(`Usuario ${u.username} ${nuevoEstado ? 'activado' : 'desactivado'}`, 'info');
-      cargarDatos();
-    } catch (err) {
-      mostrarToast('Error al cambiar estado: ' + err.message, 'error');
-    }
-  };
-
-  // ------------------------------------------------------------------------
-  // GESTIÓN DE PEDIDOS (ROLE_ADMIN y ROLE_OPERADORA)
-  // ------------------------------------------------------------------------
-  const handleCambiarEstadoPedido = async (idPedido, nuevoEstado) => {
-    try {
-      await actualizarEstadoPedidoAPI(idPedido, nuevoEstado);
-      mostrarToast(`Pedido #${idPedido} actualizado a: ${nuevoEstado}`, 'success');
-      cargarDatos();
-    } catch (err) {
-      mostrarToast('No se pudo cambiar el estado: ' + err.message, 'error');
-    }
-  };
-
-  const handleCancelarPedido = async (idPedido) => {
-    if (!window.confirm(`¿Seguro que deseas cancelar el Pedido #${idPedido}?`)) return;
-    try {
-      await cancelarPedidoAPI(idPedido);
-      mostrarToast(`Pedido #${idPedido} cancelado`, 'info');
-      cargarDatos();
-    } catch (err) {
-      mostrarToast('Error al cancelar pedido: ' + err.message, 'error');
-    }
-  };
-
-  // ------------------------------------------------------------------------
-  // CRUD PRODUCTOS (ROLE_ADMIN)
-  // ------------------------------------------------------------------------
-  const handleCrearProducto = async (e) => {
+  const handleGuardarProducto = async (e) => {
     e.preventDefault();
-    if (!nuevoNombreProd.trim() || !nuevoPrecioProd) {
-      mostrarToast('Nombre y precio son obligatorios', 'warning');
+    if (!formProd.nombre.trim() || !formProd.precio) {
+      mostrarToast('Nombre y precio son requeridos', 'warning');
       return;
     }
+
     try {
-      await crearProductoAPI({
-        nombre: nuevoNombreProd,
-        descripcion: nuevaDescProd,
-        precio: Number(nuevoPrecioProd),
-        pesoKg: Number(nuevoPesoProd),
-        stock: Number(nuevoStockProd),
-        imagen: '/img/cilindros.png'
-      });
-      mostrarToast('¡Producto agregado al catálogo exitosamente!', 'success');
-      setNuevoNombreProd('');
-      setNuevaDescProd('');
-      setNuevoPrecioProd('');
+      if (productoEditando) {
+        await actualizarProductoAPI(productoEditando.id, {
+          id: productoEditando.id,
+          nombre: formProd.nombre.trim(),
+          descripcion: formProd.descripcion.trim(),
+          precio: Number(formProd.precio),
+          pesoKg: Number(formProd.pesoKg),
+          stock: Number(formProd.stock),
+          stockActual: Number(formProd.stock),
+          imagenUrl: formProd.imagen,
+          activo: formProd.activo
+        });
+        mostrarToast('¡Producto actualizado con éxito!', 'success');
+      } else {
+        await crearProductoAPI({
+          nombre: formProd.nombre.trim(),
+          descripcion: formProd.descripcion.trim(),
+          precio: Number(formProd.precio),
+          pesoKg: Number(formProd.pesoKg),
+          stock: Number(formProd.stock),
+          imagenUrl: formProd.imagen,
+          activo: true
+        });
+        mostrarToast('¡Nuevo producto guardado en el catálogo!', 'success');
+      }
+      setModalProductoAbierto(false);
       cargarDatos();
     } catch (err) {
-      mostrarToast('Error al crear producto: ' + err.message, 'error');
+      mostrarToast('Error al guardar producto: ' + err.message, 'error');
     }
   };
 
-  const handleEliminarProducto = async (id) => {
-    if (!window.confirm('¿Seguro que deseas desactivar este producto del catálogo?')) return;
+  const confirmarEliminarProducto = (prod) => {
+    setConfirmConfig({
+      titulo: 'Desactivar Producto',
+      mensaje: `¿Estás seguro de que deseas desactivar "${prod.nombre}" del catálogo comercial?`,
+      colorBoton: 'btn-danger',
+      textoBoton: 'Desactivar',
+      accion: async () => {
+        try {
+          await eliminarProductoAPI(prod.id);
+          mostrarToast(`Producto "${prod.nombre}" desactivado`, 'info');
+          setModalConfirmAbierto(false);
+          cargarDatos();
+        } catch (err) {
+          mostrarToast('Error al eliminar: ' + err.message, 'error');
+        }
+      }
+    });
+    setModalConfirmAbierto(true);
+  };
+
+  // =========================================================================
+  // GESTIÓN USUARIOS
+  // =========================================================================
+  const abrirModalUsuario = (u = null) => {
+    if (u) {
+      setUsuarioEditando(u);
+      setFormUser({
+        nombreCompleto: u.nombreCompleto || '',
+        username: u.username || '',
+        password: '',
+        rol: u.rol || 'ROLE_CLIENTE',
+        activo: u.activo !== false
+      });
+    } else {
+      setUsuarioEditando(null);
+      setFormUser({
+        nombreCompleto: '',
+        username: '',
+        password: '',
+        rol: 'ROLE_CLIENTE',
+        activo: true
+      });
+    }
+    setModalUsuarioAbierto(true);
+  };
+
+  const handleGuardarUsuario = async (e) => {
+    e.preventDefault();
+    if (!formUser.nombreCompleto.trim() || !formUser.username.trim()) {
+      mostrarToast('Nombre y Username son requeridos', 'warning');
+      return;
+    }
+
     try {
-      await eliminarProductoAPI(id);
-      mostrarToast('Producto desactivado correctamente', 'info');
+      if (usuarioEditando) {
+        await actualizarUsuarioAPI(usuarioEditando.id, {
+          nombreCompleto: formUser.nombreCompleto.trim(),
+          rol: formUser.rol,
+          activo: formUser.activo,
+          password: formUser.password ? formUser.password.trim() : null
+        });
+        mostrarToast('¡Usuario modificado con éxito en MySQL!', 'success');
+      } else {
+        if (!formUser.password) {
+          mostrarToast('La contraseña inicial es requerida', 'warning');
+          return;
+        }
+        await crearUsuarioAdminAPI({
+          nombreCompleto: formUser.nombreCompleto.trim(),
+          username: formUser.username.trim(),
+          password: formUser.password.trim(),
+          rol: formUser.rol,
+          activo: true
+        });
+        mostrarToast('¡Usuario registrado exitosamente en MySQL!', 'success');
+      }
+      setModalUsuarioAbierto(false);
       cargarDatos();
     } catch (err) {
-      mostrarToast('Error al eliminar producto: ' + err.message, 'error');
+      mostrarToast('Error: ' + err.message, 'error');
     }
   };
 
-  const handleModificarStock = async (prod) => {
-    const nuevo = prompt(`Ingresa el nuevo stock para "${prod.nombre}":`, prod.stock || prod.stockActual);
-    if (nuevo === null || isNaN(nuevo)) return;
-    try {
-      await actualizarProductoAPI(prod.id, {
-        ...prod,
-        stock: Number(nuevo)
+  const confirmarToggleUsuario = (u) => {
+    const accion = u.activo ? 'desactivar' : 'reactivar';
+    setConfirmConfig({
+      titulo: `${u.activo ? 'Desactivar' : 'Activar'} Usuario`,
+      mensaje: `¿Confirmas que deseas ${accion} la cuenta de acceso de ${u.nombreCompleto} (${u.username})?`,
+      colorBoton: u.activo ? 'btn-danger' : 'btn-success',
+      textoBoton: u.activo ? 'Desactivar' : 'Activar',
+      accion: async () => {
+        try {
+          await actualizarUsuarioAPI(u.id, {
+            nombreCompleto: u.nombreCompleto,
+            rol: u.rol,
+            activo: !u.activo
+          });
+          mostrarToast(`Cuenta de ${u.username} actualizada`, 'info');
+          setModalConfirmAbierto(false);
+          cargarDatos();
+        } catch (err) {
+          mostrarToast('Error: ' + err.message, 'error');
+        }
+      }
+    });
+    setModalConfirmAbierto(true);
+  };
+
+  // =========================================================================
+  // GESTIÓN PEDIDOS
+  // =========================================================================
+  const abrirModalPedido = (ped = null) => {
+    if (ped) {
+      setPedidoEditando(ped);
+      setFormPed({
+        clienteNombre: ped.clienteNombre || ped.clienteUsername || '',
+        direccionEntrega: ped.direccionEntrega || '',
+        productoId: ped.productoId || (productos[0]?.id || ''),
+        cantidad: ped.cantidad || 1,
+        repartidorUsername: ped.repartidorUsername || '',
+        estado: ped.estado || 'PENDIENTE',
+        pagoRegistrado: ped.pagoRegistrado === true
       });
-      mostrarToast('Stock actualizado correctamente', 'success');
+    } else {
+      setPedidoEditando(null);
+      setFormPed({
+        clienteNombre: 'Cliente Mostrador / Venta Telefónica',
+        direccionEntrega: 'Chillán Centro',
+        productoId: productos[0]?.id || 1,
+        cantidad: 1,
+        repartidorUsername: 'repartidor1',
+        estado: 'PENDIENTE',
+        pagoRegistrado: false
+      });
+    }
+    setModalPedidoAbierto(true);
+  };
+
+  const handleGuardarPedido = async (e) => {
+    e.preventDefault();
+    try {
+      if (pedidoEditando) {
+        await actualizarPedidoCompletoAPI(pedidoEditando.id, {
+          clienteNombre: formPed.clienteNombre,
+          direccionEntrega: formPed.direccionEntrega,
+          cantidad: Number(formPed.cantidad),
+          repartidorUsername: formPed.repartidorUsername,
+          estado: formPed.estado,
+          pagoRegistrado: formPed.pagoRegistrado
+        });
+        mostrarToast(`¡Pedido #${pedidoEditando.id} actualizado!`, 'success');
+      } else {
+        const prod = productos.find(p => p.id === Number(formPed.productoId)) || productos[0];
+        await crearPedidoAPI({
+          usuario: { email: usuarioSesion.username, nombre: formPed.clienteNombre },
+          direccion: formPed.direccionEntrega,
+          zona: 'Zona Centro',
+          productos: [{ id: prod?.id, nombre: prod?.nombre, precio: prod?.precio, cantidad: Number(formPed.cantidad) }],
+          total: (prod?.precio || 12000) * Number(formPed.cantidad)
+        });
+        mostrarToast('¡Nuevo pedido creado exitosamente!', 'success');
+      }
+      setModalPedidoAbierto(false);
       cargarDatos();
     } catch (err) {
-      mostrarToast('Error al actualizar stock: ' + err.message, 'error');
+      mostrarToast('Error en pedido: ' + err.message, 'error');
     }
+  };
+
+  const confirmarCancelarPedido = (p) => {
+    setConfirmConfig({
+      titulo: 'Cancelar Pedido #' + p.id,
+      mensaje: `¿Deseas marcar como CANCELADO el pedido de ${p.clienteNombre || p.clienteUsername}?`,
+      colorBoton: 'btn-danger',
+      textoBoton: 'Cancelar Pedido',
+      accion: async () => {
+        try {
+          await cancelarPedidoAPI(p.id);
+          mostrarToast(`Pedido #${p.id} cancelado`, 'info');
+          setModalConfirmAbierto(false);
+          cargarDatos();
+        } catch (err) {
+          mostrarToast('Error al cancelar: ' + err.message, 'error');
+        }
+      }
+    });
+    setModalConfirmAbierto(true);
   };
 
   // ------------------------------------------------------------------------
-  // RESTRICCIÓN DE ACCESO
+  // RESTRICCIÓN DE SEGURIDAD
   // ------------------------------------------------------------------------
   if (!tieneAcceso) {
     return (
@@ -229,18 +381,14 @@ export default function AdminPanel() {
             </div>
             <h1 className="h4 fw-bold text-danger mb-2">Acceso Restringido</h1>
             <p className="text-muted mb-3">
-              Esta sección está reservada exclusivamente para el personal de <strong>Operaciones</strong> y <strong>Administración</strong> de Gas El Volcán.
+              Se requiere rol de <strong>Operaciones</strong> o <strong>Administrador</strong> para ingresar.
             </p>
-            <div className="alert alert-warning text-start py-2 px-3 small mb-4">
-              <i className="bi bi-info-circle-fill me-2"></i>
-              Tu usuario actual tiene el rol: <strong>{rol || 'No autenticado (Invitado)'}</strong>.
-            </div>
             <div className="d-flex justify-content-center gap-2">
               <button className="btn btn-danger" onClick={() => navegar('registro')}>
-                <i className="bi bi-person-badge me-1"></i> Iniciar Sesión con Rol Autorizado
+                Iniciar Sesión
               </button>
               <button className="btn btn-outline-secondary" onClick={() => navegar('inicio')}>
-                Volver al Inicio
+                Inicio
               </button>
             </div>
           </div>
@@ -251,264 +399,201 @@ export default function AdminPanel() {
 
   return (
     <main className="py-4 fade-in">
-      <div className="container">
-        {/* Cabecera del Panel */}
-        <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2 border-bottom pb-3">
+      <div className="container-fluid px-lg-5">
+        {/* Cabecera Principal */}
+        <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 border-bottom pb-3">
           <div>
             <div className="d-flex align-items-center gap-2">
-              <i className="bi bi-speedometer2 fs-3 text-danger"></i>
-              <h1 className="h3 fw-bold mb-0" style={{ color: 'var(--gas-blue-dark)' }}>
-                Dashboard de Administración y Control
-              </h1>
+              <i className="bi bi-speedometer2 fs-2 text-danger"></i>
+              <div>
+                <h1 className="h3 fw-bold mb-0 text-white">Dashboard Integral de Control</h1>
+                <p className="text-muted small mb-0">Gas El Volcán Chillán | Microservicios Spring Boot & MySQL</p>
+              </div>
             </div>
-            <p className="text-muted small mb-0 mt-1">
-              Sesión activa: <strong>{usuarioSesion?.nombre || usuarioSesion?.username}</strong> |
-              Rol: <span className="badge bg-danger ms-1">{rol}</span>
-            </p>
           </div>
 
-          <div className="d-flex flex-wrap gap-2">
+          <div className="d-flex flex-wrap gap-2 align-items-center">
             {esAdmin && (
               <button
-                className={`btn ${tabActiva === 'usuarios' ? 'btn-danger' : 'btn-outline-secondary'} fw-semibold btn-sm`}
+                className={`btn ${tabActiva === 'usuarios' ? 'btn-danger' : 'btn-outline-secondary'} fw-semibold`}
                 onClick={() => setTabActiva('usuarios')}
               >
-                <i className="bi bi-people-fill me-1"></i> Control de Usuarios ({usuarios.length})
+                <i className="bi bi-people-fill me-1"></i> Usuarios ({usuarios.length})
               </button>
             )}
             <button
-              className={`btn ${tabActiva === 'pedidos' ? 'btn-danger' : 'btn-outline-secondary'} fw-semibold btn-sm`}
+              className={`btn ${tabActiva === 'pedidos' ? 'btn-danger' : 'btn-outline-secondary'} fw-semibold`}
               onClick={() => setTabActiva('pedidos')}
             >
-              <i className="bi bi-truck me-1"></i> Control de Pedidos ({pedidos.length})
+              <i className="bi bi-truck me-1"></i> Pedidos ({pedidos.length})
             </button>
             <button
-              className={`btn ${tabActiva === 'productos' ? 'btn-danger' : 'btn-outline-secondary'} fw-semibold btn-sm`}
+              className={`btn ${tabActiva === 'productos' ? 'btn-danger' : 'btn-outline-secondary'} fw-semibold`}
               onClick={() => setTabActiva('productos')}
             >
-              <i className="bi bi-box-seam me-1"></i> Catálogo y Stock ({productos.length})
+              <i className="bi bi-box-seam me-1"></i> Catálogo y Cilindros ({productos.length})
             </button>
-            <button className="btn btn-outline-primary btn-sm" onClick={cargarDatos} disabled={cargando}>
-              <i className={`bi bi-arrow-clockwise ${cargando ? 'spin' : ''}`}></i> Refrescar
+            <button className="btn btn-outline-primary" onClick={cargarDatos} disabled={cargando} title="Recargar datos">
+              <i className={`bi bi-arrow-clockwise ${cargando ? 'spin' : ''}`}></i>
             </button>
           </div>
         </div>
 
-        {/* ==================================================================
-            TAB 1: CONTROL DE USUARIOS (CRUD COMPLETO - SOLO ADMIN)
-            ================================================================== */}
+        {/* =================================================================
+            TAB 1: CONTROL TOTAL DE USUARIOS
+            ================================================================= */}
         {tabActiva === 'usuarios' && esAdmin && (
-          <div className="row g-4">
-            {/* Formulario Crear Usuario */}
-            <div className="col-lg-4">
-              <div className="surface-card p-4">
-                <h2 className="h5 fw-bold mb-3" style={{ color: 'var(--gas-blue-dark)' }}>
-                  <i className="bi bi-person-plus-fill me-2 text-danger"></i>
-                  Crear Nuevo Usuario
+          <div className="surface-card p-4">
+            <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+              <div>
+                <h2 className="h4 fw-bold mb-1 text-white">
+                  <i className="bi bi-people-fill text-danger me-2"></i>Gestión de Cuentas y Accesos
                 </h2>
-                <form onSubmit={handleCrearUsuario}>
-                  <div className="mb-2">
-                    <label className="form-label small fw-semibold">Nombre Completo *</label>
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      placeholder="Ej: Marcelo Rios"
-                      value={nuevoNombreUsuario}
-                      onChange={(e) => setNuevoNombreUsuario(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="mb-2">
-                    <label className="form-label small fw-semibold">Username / Email *</label>
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      placeholder="usuario@gaselvolcan.cl"
-                      value={nuevoUsername}
-                      onChange={(e) => setNuevoUsername(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="mb-2">
-                    <label className="form-label small fw-semibold">Contraseña Inicial *</label>
-                    <input
-                      type="password"
-                      className="form-control form-control-sm"
-                      placeholder="Mínimo 6 caracteres"
-                      value={nuevoPassword}
-                      onChange={(e) => setNuevoPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label small fw-semibold">Rol Asignado *</label>
-                    <select
-                      className="form-select form-select-sm"
-                      value={nuevoRol}
-                      onChange={(e) => setNuevoRol(e.target.value)}
-                    >
-                      <option value="ROLE_CLIENTE">ROLE_CLIENTE (Cliente Web)</option>
-                      <option value="ROLE_OPERADORA">ROLE_OPERADORA (Call Center / Operaciones)</option>
-                      <option value="ROLE_REPARTIDOR">ROLE_REPARTIDOR (Chofer en Ruta)</option>
-                      <option value="ROLE_ADMIN">ROLE_ADMIN (Administrador Total)</option>
-                    </select>
-                  </div>
-                  <button type="submit" className="btn btn-danger btn-sm w-100 fw-bold py-2">
-                    <i className="bi bi-check-lg me-1"></i> Guardar Usuario en MySQL
-                  </button>
-                </form>
+                <span className="text-muted small">Cuentas almacenadas en MySQL (<code>gas_usuarios_db</code>)</span>
               </div>
+              <button className="btn btn-danger fw-bold" onClick={() => abrirModalUsuario(null)}>
+                <i className="bi bi-person-plus-fill me-1"></i> Crear Usuario
+              </button>
             </div>
 
-            {/* Tabla de Usuarios */}
-            <div className="col-lg-8">
-              <div className="surface-card p-4">
-                <h2 className="h5 fw-bold mb-3" style={{ color: 'var(--gas-blue-dark)' }}>
-                  Usuarios Registrados en Microservicio (Puerto 8081)
-                </h2>
-                <div className="table-responsive">
-                  <table className="table table-sm table-hover align-middle mb-0">
-                    <thead className="table-light">
-                      <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Username / Email</th>
-                        <th>Rol</th>
-                        <th>Estado</th>
-                        <th className="text-end">Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {usuarios.map(u => {
-                        let rolBadge = 'bg-secondary';
-                        if (u.rol === 'ROLE_ADMIN') rolBadge = 'bg-danger';
-                        if (u.rol === 'ROLE_OPERADORA') rolBadge = 'bg-primary';
-                        if (u.rol === 'ROLE_REPARTIDOR') rolBadge = 'bg-warning text-dark';
-                        if (u.rol === 'ROLE_CLIENTE') rolBadge = 'bg-success';
+            <div className="table-responsive">
+              <table className="table table-hover align-middle mb-0">
+                <thead className="table-dark">
+                  <tr>
+                    <th>ID</th>
+                    <th>Nombre Completo</th>
+                    <th>Username / Correo</th>
+                    <th>Rol en Sistema</th>
+                    <th>Estado</th>
+                    <th className="text-end">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usuarios.map(u => {
+                    let rolBadge = 'bg-secondary';
+                    if (u.rol === 'ROLE_ADMIN') rolBadge = 'bg-danger';
+                    if (u.rol === 'ROLE_OPERADORA') rolBadge = 'bg-primary';
+                    if (u.rol === 'ROLE_REPARTIDOR') rolBadge = 'bg-warning text-dark';
+                    if (u.rol === 'ROLE_CLIENTE') rolBadge = 'bg-success';
 
-                        return (
-                          <tr key={u.id}>
-                            <td><strong>#{u.id}</strong></td>
-                            <td>{u.nombreCompleto}</td>
-                            <td><code>{u.username}</code></td>
-                            <td><span className={`badge ${rolBadge}`}>{u.rol}</span></td>
-                            <td>
-                              <span className={`badge ${u.activo ? 'bg-success-subtle text-success border border-success' : 'bg-danger-subtle text-danger border border-danger'}`}>
-                                {u.activo ? 'Activo' : 'Desactivado'}
-                              </span>
-                            </td>
-                            <td className="text-end">
-                              <button
-                                className="btn btn-outline-secondary btn-sm me-1"
-                                onClick={() => handleEditarUsuario(u)}
-                                title="Editar nombre o rol"
-                              >
-                                <i className="bi bi-pencil"></i>
-                              </button>
-                              <button
-                                className={`btn btn-sm ${u.activo ? 'btn-outline-danger' : 'btn-outline-success'}`}
-                                onClick={() => handleToggleActivoUsuario(u)}
-                                title={u.activo ? 'Desactivar usuario' : 'Activar usuario'}
-                              >
-                                <i className={`bi ${u.activo ? 'bi-person-dash' : 'bi-person-check'}`}></i>
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                    return (
+                      <tr key={u.id}>
+                        <td><strong>#{u.id}</strong></td>
+                        <td className="fw-semibold text-white">{u.nombreCompleto}</td>
+                        <td><code>{u.username}</code></td>
+                        <td><span className={`badge ${rolBadge}`}>{u.rol}</span></td>
+                        <td>
+                          <span className={`badge ${u.activo ? 'bg-success-subtle text-success border border-success' : 'bg-danger-subtle text-danger border border-danger'}`}>
+                            {u.activo ? 'Activo' : 'Suspendido'}
+                          </span>
+                        </td>
+                        <td className="text-end">
+                          <button
+                            className="btn btn-outline-info btn-sm me-2"
+                            onClick={() => abrirModalUsuario(u)}
+                            title="Editar usuario"
+                          >
+                            <i className="bi bi-pencil-square me-1"></i> Modificar
+                          </button>
+                          <button
+                            className={`btn btn-sm ${u.activo ? 'btn-outline-danger' : 'btn-outline-success'}`}
+                            onClick={() => confirmarToggleUsuario(u)}
+                            title={u.activo ? 'Desactivar cuenta' : 'Activar cuenta'}
+                          >
+                            <i className={`bi ${u.activo ? 'bi-person-dash' : 'bi-person-check'} me-1`}></i>
+                            {u.activo ? 'Suspender' : 'Activar'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
-        {/* ==================================================================
-            TAB 2: CONTROL DE PEDIDOS
-            ================================================================== */}
+        {/* =================================================================
+            TAB 2: CONTROL TOTAL DE PEDIDOS
+            ================================================================= */}
         {tabActiva === 'pedidos' && (
           <div className="surface-card p-4">
-            <h2 className="h5 fw-bold mb-3" style={{ color: 'var(--gas-blue-dark)' }}>
-              <i className="bi bi-card-checklist me-2 text-danger"></i>
-              Órdenes de Compra y Pedidos (Puerto 8083)
-            </h2>
+            <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+              <div>
+                <h2 className="h4 fw-bold mb-1 text-white">
+                  <i className="bi bi-truck text-danger me-2"></i>Monitoreo y Despacho de Pedidos
+                </h2>
+                <span className="text-muted small">Órdenes de gas en tiempo real (<code>gas_pedidos_db</code>)</span>
+              </div>
+              <button className="btn btn-danger fw-bold" onClick={() => abrirModalPedido(null)}>
+                <i className="bi bi-plus-circle me-1"></i> Crear Pedido Manual
+              </button>
+            </div>
 
             {pedidos.length === 0 ? (
               <div className="text-center py-5 text-muted">
-                <i className="bi bi-inbox fs-1 d-block mb-2"></i>
-                No hay pedidos registrados en el microservicio en este momento.
+                <i className="bi bi-inbox fs-1 d-block mb-2"></i> No hay pedidos registrados en el sistema.
               </div>
             ) : (
               <div className="table-responsive">
                 <table className="table table-hover align-middle mb-0">
-                  <thead className="table-light">
+                  <thead className="table-dark">
                     <tr>
                       <th># Pedido</th>
                       <th>Cliente</th>
                       <th>Dirección</th>
-                      <th>Cilindro</th>
+                      <th>Producto</th>
                       <th>Cant.</th>
                       <th>Total</th>
+                      <th>Repartidor</th>
                       <th>Estado</th>
-                      <th>Acciones / Cambio de Estado</th>
+                      <th className="text-end">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pedidos.map(p => {
-                      let badgeColor = 'bg-warning text-dark';
-                      if (p.estado === 'ASIGNADO') badgeColor = 'bg-info text-dark';
-                      if (p.estado === 'EN_CAMINO') badgeColor = 'bg-primary text-white';
-                      if (p.estado === 'ENTREGADO') badgeColor = 'bg-success text-white';
-                      if (p.estado === 'CANCELADO') badgeColor = 'bg-secondary text-white';
+                      let badge = 'bg-warning text-dark';
+                      if (p.estado === 'ASIGNADO') badge = 'bg-info text-dark';
+                      if (p.estado === 'EN_CAMINO') badge = 'bg-primary text-white';
+                      if (p.estado === 'ENTREGADO') badge = 'bg-success text-white';
+                      if (p.estado === 'CANCELADO') badge = 'bg-secondary text-white';
 
                       return (
                         <tr key={p.id}>
                           <td><strong>#{p.id}</strong></td>
-                          <td>{p.clienteNombre || p.clienteUsername}</td>
+                          <td className="fw-semibold text-white">{p.clienteNombre || p.clienteUsername}</td>
                           <td className="small">{p.direccionEntrega}</td>
-                          <td><strong>{p.productoNombre}</strong></td>
-                          <td>{p.cantidad}</td>
+                          <td>{p.productoNombre || 'Cilindro GLP'}</td>
+                          <td><strong>{p.cantidad}</strong></td>
                           <td className="text-danger fw-bold">
-                            {typeof p.totalPagar === 'number'
-                              ? `$${p.totalPagar.toLocaleString('es-CL')}`
-                              : p.totalPagar}
+                            {typeof p.totalPagar === 'number' ? `$${p.totalPagar.toLocaleString('es-CL')}` : p.totalPagar}
                           </td>
                           <td>
-                            <span className={`badge ${badgeColor}`}>{p.estado}</span>
+                            <span className="badge bg-secondary">{p.repartidorUsername || 'Sin asignar'}</span>
                           </td>
                           <td>
-                            <div className="btn-group btn-group-sm">
-                              {p.estado === 'PENDIENTE' && (
-                                <button
-                                  className="btn btn-outline-primary"
-                                  onClick={() => handleCambiarEstadoPedido(p.id, 'EN_CAMINO')}
-                                >
-                                  <i className="bi bi-truck me-1"></i> Despachar
-                                </button>
-                              )}
-                              {p.estado === 'EN_CAMINO' && (
-                                <button
-                                  className="btn btn-outline-success"
-                                  onClick={() => handleCambiarEstadoPedido(p.id, 'ENTREGADO')}
-                                >
-                                  <i className="bi bi-check-circle me-1"></i> Entregar
-                                </button>
-                              )}
-                              {p.estado !== 'ENTREGADO' && p.estado !== 'CANCELADO' && (
-                                <button
-                                  className="btn btn-outline-danger"
-                                  onClick={() => handleCancelarPedido(p.id)}
-                                >
-                                  Cancelar
-                                </button>
-                              )}
-                              {p.estado === 'ENTREGADO' && (
-                                <span className="text-success small fw-semibold">
-                                  <i className="bi bi-check-all"></i> Entregado & Pagado
-                                </span>
-                              )}
-                            </div>
+                            <span className={`badge ${badge}`}>{p.estado}</span>
+                            {p.pagoRegistrado && (
+                              <div className="small text-success mt-1"><i className="bi bi-check-circle"></i> Pagado</div>
+                            )}
+                          </td>
+                          <td className="text-end">
+                            <button
+                              className="btn btn-outline-info btn-sm me-2"
+                              onClick={() => abrirModalPedido(p)}
+                              title="Modificar pedido completo"
+                            >
+                              <i className="bi bi-pencil-square me-1"></i> Modificar
+                            </button>
+                            {p.estado !== 'CANCELADO' && p.estado !== 'ENTREGADO' && (
+                              <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() => confirmarCancelarPedido(p)}
+                                title="Cancelar pedido"
+                              >
+                                Cancelar
+                              </button>
+                            )}
                           </td>
                         </tr>
                       );
@@ -520,144 +605,400 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {/* ==================================================================
-            TAB 3: CRUD DE PRODUCTOS
-            ================================================================== */}
+        {/* =================================================================
+            TAB 3: CONTROL TOTAL DE PRODUCTOS (CON FOTO Y EDICIÓN COMPLETA)
+            ================================================================= */}
         {tabActiva === 'productos' && (
-          <div className="row g-4">
-            {esAdmin ? (
-              <div className="col-lg-4">
-                <div className="surface-card p-4">
-                  <h2 className="h5 fw-bold mb-3" style={{ color: 'var(--gas-blue-dark)' }}>
-                    <i className="bi bi-plus-circle me-2 text-danger"></i>
-                    Agregar Cilindro / Producto
-                  </h2>
-                  <form onSubmit={handleCrearProducto}>
-                    <div className="mb-2">
-                      <label className="form-label small fw-semibold">Nombre del Producto *</label>
-                      <input
-                        type="text"
-                        className="form-control form-control-sm"
-                        placeholder="Ej: Cilindro GLP 15 kg Plus"
-                        value={nuevoNombreProd}
-                        onChange={(e) => setNuevoNombreProd(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label className="form-label small fw-semibold">Descripción</label>
-                      <textarea
-                        className="form-control form-control-sm"
-                        rows="2"
-                        placeholder="Uso residencial o comercial..."
-                        value={nuevaDescProd}
-                        onChange={(e) => setNuevaDescProd(e.target.value)}
-                      ></textarea>
-                    </div>
-                    <div className="row g-2 mb-2">
-                      <div className="col-6">
-                        <label className="form-label small fw-semibold">Precio ($ CLP) *</label>
-                        <input
-                          type="number"
-                          className="form-control form-control-sm"
-                          placeholder="16000"
-                          value={nuevoPrecioProd}
-                          onChange={(e) => setNuevoPrecioProd(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="col-6">
-                        <label className="form-label small fw-semibold">Peso (kg)</label>
-                        <input
-                          type="number"
-                          className="form-control form-control-sm"
-                          value={nuevoPesoProd}
-                          onChange={(e) => setNuevoPesoProd(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label small fw-semibold">Stock Inicial</label>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        value={nuevoStockProd}
-                        onChange={(e) => setNuevoStockProd(e.target.value)}
-                      />
-                    </div>
-                    <button type="submit" className="btn btn-danger btn-sm w-100 fw-bold py-2">
-                      <i className="bi bi-save me-1"></i> Guardar en Base de Datos
-                    </button>
-                  </form>
-                </div>
-              </div>
-            ) : (
-              <div className="col-lg-4">
-                <div className="alert alert-info small">
-                  <i className="bi bi-info-circle me-1"></i>
-                  Tu rol de <strong>Operadora</strong> te permite visualizar el catálogo. La creación y edición está reservada para <strong>Administrador</strong>.
-                </div>
-              </div>
-            )}
-
-            <div className={esAdmin ? 'col-lg-8' : 'col-lg-12'}>
-              <div className="surface-card p-4">
-                <h2 className="h5 fw-bold mb-3" style={{ color: 'var(--gas-blue-dark)' }}>
-                  Catálogo Actual en Microservicio (Puerto 8082)
+          <div className="surface-card p-4">
+            <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+              <div>
+                <h2 className="h4 fw-bold mb-1 text-white">
+                  <i className="bi bi-box-seam text-danger me-2"></i>Catálogo Comercial y Stock de Cilindros
                 </h2>
-                <div className="table-responsive">
-                  <table className="table table-sm align-middle mb-0">
-                    <thead className="table-light">
-                      <tr>
-                        <th>Producto</th>
-                        <th>Precio</th>
-                        <th>Stock</th>
-                        {esAdmin && <th className="text-end">Acciones CRUD</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {productos.map(p => (
-                        <tr key={p.id}>
-                          <td>
-                            <strong>{p.nombre}</strong>
-                            <div className="text-muted small">{p.descripcion}</div>
-                          </td>
-                          <td className="fw-bold text-danger">
-                            ${Number(p.precio).toLocaleString('es-CL')}
-                          </td>
-                          <td>
-                            <span className={`badge ${p.stock < 20 ? 'bg-warning text-dark' : 'bg-success'}`}>
-                              {p.stock || p.stockActual || 0} unid.
-                            </span>
-                          </td>
-                          {esAdmin && (
-                            <td className="text-end">
-                              <button
-                                className="btn btn-outline-secondary btn-sm me-1"
-                                onClick={() => handleModificarStock(p)}
-                                title="Editar stock"
-                              >
-                                <i className="bi bi-pencil"></i>
-                              </button>
-                              <button
-                                className="btn btn-outline-danger btn-sm"
-                                onClick={() => handleEliminarProducto(p.id)}
-                                title="Desactivar producto"
-                              >
-                                <i className="bi bi-trash"></i>
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <span className="text-muted small">Productos almacenados en MySQL (<code>gas_productos_db</code>)</span>
               </div>
+              {esAdmin && (
+                <button className="btn btn-danger fw-bold" onClick={() => abrirModalProducto(null)}>
+                  <i className="bi bi-plus-circle me-1"></i> Agregar Nuevo Cilindro
+                </button>
+              )}
+            </div>
+
+            <div className="row g-4">
+              {productos.map(p => (
+                <div key={p.id} className="col-md-6 col-lg-4 col-xl-3">
+                  <div className="card h-100 bg-dark text-white border-secondary shadow-sm">
+                    <div className="text-center p-3 bg-secondary-subtle rounded-top position-relative" style={{ minHeight: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img
+                        src={p.imagenUrl || p.imagen || '/img/cilindros.png'}
+                        alt={p.nombre}
+                        className="img-fluid"
+                        style={{ maxHeight: '150px', objectFit: 'contain' }}
+                        onError={(e) => { e.target.src = '/img/cilindros.png'; }}
+                      />
+                      <span className={`badge position-absolute top-0 end-0 m-2 ${p.activo !== false ? 'bg-success' : 'bg-danger'}`}>
+                        {p.activo !== false ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </div>
+                    <div className="card-body d-flex flex-column">
+                      <h3 className="h6 fw-bold mb-1">{p.nombre}</h3>
+                      <p className="small text-muted mb-2 flex-grow-1">{p.descripcion}</p>
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <span className="text-danger fw-bold fs-5">${Number(p.precio).toLocaleString('es-CL')}</span>
+                        <span className="badge bg-secondary">{p.pesoKg || 11} kg</span>
+                      </div>
+                      <div className="small text-muted mb-3">
+                        Stock disponible: <strong>{p.stock || p.stockActual || 0} unidades</strong>
+                      </div>
+                      {esAdmin && (
+                        <div className="d-flex gap-2">
+                          <button
+                            className="btn btn-outline-info btn-sm flex-fill"
+                            onClick={() => abrirModalProducto(p)}
+                          >
+                            <i className="bi bi-pencil me-1"></i> Editar Todo
+                          </button>
+                          <button
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => confirmarEliminarProducto(p)}
+                            title="Desactivar producto"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
       </div>
+
+      {/* =====================================================================
+          MODAL PERSONALIZADO 1: PRODUCTO (CREAR / EDITAR COMPLETO CON IMAGEN)
+          ===================================================================== */}
+      {modalProductoAbierto && (
+        <div className="custom-modal-backdrop">
+          <div className="custom-modal-dialog">
+            <div className="custom-modal-content">
+              <div className="custom-modal-header">
+                <h3 className="h5 fw-bold mb-0 text-white">
+                  <i className="bi bi-box-seam text-danger me-2"></i>
+                  {productoEditando ? `Modificar Producto: ${productoEditando.nombre}` : 'Nuevo Cilindro de Gas'}
+                </h3>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setModalProductoAbierto(false)}></button>
+              </div>
+              <form onSubmit={handleGuardarProducto}>
+                <div className="custom-modal-body">
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold text-white">Nombre del Producto *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={formProd.nombre}
+                        onChange={(e) => setFormProd({ ...formProd, nombre: e.target.value })}
+                        placeholder="Ej: Cilindro GLP 15 kg Plus"
+                        required
+                      />
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold text-white">Descripción Completa</label>
+                      <textarea
+                        className="form-control"
+                        rows="2"
+                        value={formProd.descripcion}
+                        onChange={(e) => setFormProd({ ...formProd, descripcion: e.target.value })}
+                        placeholder="Uso residencial, para calefacción o cocina..."
+                      ></textarea>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label small fw-semibold text-white">Precio ($ CLP) *</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={formProd.precio}
+                        onChange={(e) => setFormProd({ ...formProd, precio: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label small fw-semibold text-white">Peso en Kilogramos (kg)</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={formProd.pesoKg}
+                        onChange={(e) => setFormProd({ ...formProd, pesoKg: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label small fw-semibold text-white">Stock Actual en Bodega</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={formProd.stock}
+                        onChange={(e) => setFormProd({ ...formProd, stock: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label small fw-semibold text-white">Estado Comercial</label>
+                      <select
+                        className="form-select"
+                        value={formProd.activo ? 'true' : 'false'}
+                        onChange={(e) => setFormProd({ ...formProd, activo: e.target.value === 'true' })}
+                      >
+                        <option value="true">Activo (Visible en tienda)</option>
+                        <option value="false">Desactivado (Oculto)</option>
+                      </select>
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold text-white">URL de la Imagen del Cilindro</label>
+                      <div className="input-group">
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={formProd.imagen}
+                          onChange={(e) => setFormProd({ ...formProd, imagen: e.target.value })}
+                          placeholder="/img/cilindro_15kg.png o URL web https://..."
+                        />
+                      </div>
+                      <div className="mt-2 d-flex gap-2 align-items-center">
+                        <span className="small text-muted">Imágenes rápidas:</span>
+                        <button type="button" className="btn btn-sm btn-outline-secondary py-0" onClick={() => setFormProd({ ...formProd, imagen: '/img/cilindro_5kg.png' })}>5kg</button>
+                        <button type="button" className="btn btn-sm btn-outline-secondary py-0" onClick={() => setFormProd({ ...formProd, imagen: '/img/cilindro_11kg.png' })}>11kg</button>
+                        <button type="button" className="btn btn-sm btn-outline-secondary py-0" onClick={() => setFormProd({ ...formProd, imagen: '/img/cilindro_15kg.png' })}>15kg</button>
+                        <button type="button" className="btn btn-sm btn-outline-secondary py-0" onClick={() => setFormProd({ ...formProd, imagen: '/img/cilindro_45kg.png' })}>45kg</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="custom-modal-footer">
+                  <button type="button" className="btn btn-outline-secondary" onClick={() => setModalProductoAbierto(false)}>Cancelar</button>
+                  <button type="submit" className="btn btn-danger fw-bold">
+                    <i className="bi bi-save me-1"></i> Guardar Cambios
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MODAL PERSONALIZADO 2: USUARIO (CREAR / EDITAR COMPLETO)
+          ===================================================================== */}
+      {modalUsuarioAbierto && (
+        <div className="custom-modal-backdrop">
+          <div className="custom-modal-dialog">
+            <div className="custom-modal-content">
+              <div className="custom-modal-header">
+                <h3 className="h5 fw-bold mb-0 text-white">
+                  <i className="bi bi-person-gear text-danger me-2"></i>
+                  {usuarioEditando ? `Modificar Usuario: ${usuarioEditando.username}` : 'Registrar Nuevo Usuario'}
+                </h3>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setModalUsuarioAbierto(false)}></button>
+              </div>
+              <form onSubmit={handleGuardarUsuario}>
+                <div className="custom-modal-body">
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold text-white">Nombre Completo *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={formUser.nombreCompleto}
+                        onChange={(e) => setFormUser({ ...formUser, nombreCompleto: e.target.value })}
+                        placeholder="Ej: Marcelo Rios"
+                        required
+                      />
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold text-white">Username / Correo Electrónico *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={formUser.username}
+                        onChange={(e) => setFormUser({ ...formUser, username: e.target.value })}
+                        placeholder="usuario@gaselvolcan.cl"
+                        disabled={!!usuarioEditando}
+                        required
+                      />
+                      {usuarioEditando && (
+                        <div className="small text-muted mt-1">El username es único y no se puede alterar una vez creado.</div>
+                      )}
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold text-white">
+                        {usuarioEditando ? 'Nueva Contraseña (Dejar en blanco para mantener la actual)' : 'Contraseña *'}
+                      </label>
+                      <input
+                        type="password"
+                        className="form-control"
+                        value={formUser.password}
+                        onChange={(e) => setFormUser({ ...formUser, password: e.target.value })}
+                        placeholder="Mínimo 6 caracteres"
+                        required={!usuarioEditando}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label small fw-semibold text-white">Rol Asignado *</label>
+                      <select
+                        className="form-select"
+                        value={formUser.rol}
+                        onChange={(e) => setFormUser({ ...formUser, rol: e.target.value })}
+                      >
+                        <option value="ROLE_CLIENTE">ROLE_CLIENTE (Cliente)</option>
+                        <option value="ROLE_OPERADORA">ROLE_OPERADORA (Operadora)</option>
+                        <option value="ROLE_REPARTIDOR">ROLE_REPARTIDOR (Chofer)</option>
+                        <option value="ROLE_ADMIN">ROLE_ADMIN (Administrador)</option>
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label small fw-semibold text-white">Estado de la Cuenta</label>
+                      <select
+                        className="form-select"
+                        value={formUser.activo ? 'true' : 'false'}
+                        onChange={(e) => setFormUser({ ...formUser, activo: e.target.value === 'true' })}
+                      >
+                        <option value="true">Activo</option>
+                        <option value="false">Suspendido</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="custom-modal-footer">
+                  <button type="button" className="btn btn-outline-secondary" onClick={() => setModalUsuarioAbierto(false)}>Cancelar</button>
+                  <button type="submit" className="btn btn-danger fw-bold">
+                    <i className="bi bi-save me-1"></i> Guardar en MySQL
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MODAL PERSONALIZADO 3: PEDIDO (MODIFICAR TODO / CREAR MANUAL)
+          ===================================================================== */}
+      {modalPedidoAbierto && (
+        <div className="custom-modal-backdrop">
+          <div className="custom-modal-dialog">
+            <div className="custom-modal-content">
+              <div className="custom-modal-header">
+                <h3 className="h5 fw-bold mb-0 text-white">
+                  <i className="bi bi-truck text-danger me-2"></i>
+                  {pedidoEditando ? `Modificar Pedido #${pedidoEditando.id}` : 'Crear Pedido de Entrega'}
+                </h3>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setModalPedidoAbierto(false)}></button>
+              </div>
+              <form onSubmit={handleGuardarPedido}>
+                <div className="custom-modal-body">
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold text-white">Nombre del Cliente *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={formPed.clienteNombre}
+                        onChange={(e) => setFormPed({ ...formPed, clienteNombre: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold text-white">Dirección de Despacho en Chillán *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={formPed.direccionEntrega}
+                        onChange={(e) => setFormPed({ ...formPed, direccionEntrega: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label small fw-semibold text-white">Cantidad de Cilindros</label>
+                      <input
+                        type="number"
+                        min="1"
+                        className="form-control"
+                        value={formPed.cantidad}
+                        onChange={(e) => setFormPed({ ...formPed, cantidad: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label small fw-semibold text-white">Repartidor Asignado</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={formPed.repartidorUsername}
+                        onChange={(e) => setFormPed({ ...formPed, repartidorUsername: e.target.value })}
+                        placeholder="Ej: repartidor1"
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label small fw-semibold text-white">Estado del Despacho</label>
+                      <select
+                        className="form-select"
+                        value={formPed.estado}
+                        onChange={(e) => setFormPed({ ...formPed, estado: e.target.value })}
+                      >
+                        <option value="PENDIENTE">PENDIENTE</option>
+                        <option value="ASIGNADO">ASIGNADO</option>
+                        <option value="EN_CAMINO">EN_CAMINO</option>
+                        <option value="ENTREGADO">ENTREGADO</option>
+                        <option value="CANCELADO">CANCELADO</option>
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label small fw-semibold text-white">Estado de Pago</label>
+                      <select
+                        className="form-select"
+                        value={formPed.pagoRegistrado ? 'true' : 'false'}
+                        onChange={(e) => setFormPed({ ...formPed, pagoRegistrado: e.target.value === 'true' })}
+                      >
+                        <option value="false">Pendiente de Pago</option>
+                        <option value="true">Pagado (Banco Estado / Efectivo)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="custom-modal-footer">
+                  <button type="button" className="btn btn-outline-secondary" onClick={() => setModalPedidoAbierto(false)}>Cancelar</button>
+                  <button type="submit" className="btn btn-danger fw-bold">
+                    <i className="bi bi-save me-1"></i> Guardar Cambios
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MODAL PERSONALIZADO 4: CONFIRMACIÓN GENÉRICA
+          ===================================================================== */}
+      {modalConfirmAbierto && (
+        <div className="custom-modal-backdrop">
+          <div className="custom-modal-dialog" style={{ maxWidth: '420px' }}>
+            <div className="custom-modal-content text-center p-4">
+              <i className="bi bi-exclamation-triangle text-warning display-4 mb-3"></i>
+              <h3 className="h5 fw-bold text-white mb-2">{confirmConfig.titulo}</h3>
+              <p className="text-muted small mb-4">{confirmConfig.mensaje}</p>
+              <div className="d-flex justify-content-center gap-2">
+                <button type="button" className="btn btn-outline-secondary" onClick={() => setModalConfirmAbierto(false)}>
+                  Cancelar
+                </button>
+                <button type="button" className={`btn ${confirmConfig.colorBoton} fw-bold`} onClick={confirmConfig.accion}>
+                  {confirmConfig.textoBoton}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
