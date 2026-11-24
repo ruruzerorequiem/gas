@@ -10,12 +10,18 @@
 
 const ENV = import.meta.env;
 
-// En producción en el servidor EC2, Nginx hace de Reverse Proxy en el puerto 80 hacia los microservicios.
-// Esto elimina problemas de puertos bloqueados en el firewall y problemas de CORS.
+// IP fija del servidor EC2 de producción donde corren los microservicios y Nginx
+const IP_EC2 = '184.198.153.160';
+
+// Si estamos navegando directo en la IP de EC2, usamos rutas relativas para el Reverse Proxy de Nginx.
+// Si estamos navegando desde Amplify (o localhost), usamos la IP fija de EC2 con HTTP.
+const esMismaIp = typeof window !== 'undefined' && window.location.hostname === IP_EC2;
+const BASE_URL = esMismaIp ? '' : `http://${IP_EC2}`;
+
 export const API_CONFIG = {
-  MICROSERVICIO_USUARIOS: ENV?.VITE_API_USUARIOS || '',
-  MICROSERVICIO_PRODUCTOS: ENV?.VITE_API_PRODUCTOS || '',
-  MICROSERVICIO_PEDIDOS: ENV?.VITE_API_PEDIDOS || ''
+  MICROSERVICIO_USUARIOS: ENV?.VITE_API_USUARIOS || BASE_URL,
+  MICROSERVICIO_PRODUCTOS: ENV?.VITE_API_PRODUCTOS || BASE_URL,
+  MICROSERVICIO_PEDIDOS: ENV?.VITE_API_PEDIDOS || BASE_URL
 };
 
 const TIMEOUT_MS = 6000;
