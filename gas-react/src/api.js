@@ -347,10 +347,19 @@ export async function registrarUsuarioAPI(datosUsuario) {
       };
     }
 
-    const errData = await resp.json().catch(() => ({}));
+    let detalleError = 'El correo o username ya está registrado en el sistema.';
+    try {
+      const errData = await resp.json();
+      if (errData && (errData.error || errData.message)) {
+        detalleError = errData.error || errData.message;
+      }
+    } catch {
+      // Ignorar si no viene JSON
+    }
+
     return {
       estado: 'ERROR',
-      mensaje: errData.error || 'No se pudo registrar el usuario en el backend.'
+      mensaje: detalleError
     };
   } catch (error) {
     console.warn("Backend 8081 no disponible. Registrando cuenta en LocalStorage:", error.message);
