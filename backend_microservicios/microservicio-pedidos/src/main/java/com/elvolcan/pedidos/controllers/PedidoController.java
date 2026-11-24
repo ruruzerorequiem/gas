@@ -101,18 +101,20 @@ public class PedidoController {
                 .body(Map.of("error", "Pedido no encontrado")));
     }
 
-    // 8. Repartidor cambia estado (EN_CAMINO / ENTREGADO -> registra pago y descuenta stock)
+    // 8. Repartidor cambia estado (EN_CAMINO / ENTREGADO -> registra pago y
+    // descuenta stock)
     @PutMapping("/{id}/estado")
     public ResponseEntity<?> actualizarEstado(@PathVariable Long id,
-                                              @RequestBody Map<String, String> body,
-                                              HttpServletRequest request) {
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request) {
         String nuevoEstado = body.get("estado");
         if (nuevoEstado == null || nuevoEstado.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Debe indicar el nuevo estado"));
         }
 
         return pedidoRepository.findById(id).map(pedido -> {
-            // Si pasa a ENTREGADO por primera vez, descuenta stock en microservicio-productos y registra pago
+            // Si pasa a ENTREGADO por primera vez, descuenta stock en
+            // microservicio-productos y registra pago
             if ("ENTREGADO".equalsIgnoreCase(nuevoEstado) && !"ENTREGADO".equalsIgnoreCase(pedido.getEstado())) {
                 try {
                     String url = productosServiceUrl + "/api/productos/" + pedido.getProductoId()
@@ -137,21 +139,27 @@ public class PedidoController {
                 .body(Map.of("error", "Pedido no encontrado")));
     }
 
-    // 9. Actualización completa de pedido (Admin y Operadora pueden editar cliente, dirección, cantidad, repartidor, estado)
+    // 9. Actualización completa de pedido (Admin y Operadora pueden editar cliente,
+    // dirección, cantidad, repartidor, estado)
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizarPedidoCompleto(@PathVariable Long id, @RequestBody Pedido datos) {
         return pedidoRepository.findById(id).map(pedido -> {
-            if (datos.getClienteNombre() != null) pedido.setClienteNombre(datos.getClienteNombre());
-            if (datos.getDireccionEntrega() != null) pedido.setDireccionEntrega(datos.getDireccionEntrega());
+            if (datos.getClienteNombre() != null)
+                pedido.setClienteNombre(datos.getClienteNombre());
+            if (datos.getDireccionEntrega() != null)
+                pedido.setDireccionEntrega(datos.getDireccionEntrega());
             if (datos.getCantidad() != null && datos.getCantidad() > 0) {
                 pedido.setCantidad(datos.getCantidad());
                 if (pedido.getPrecioUnitario() != null) {
                     pedido.setTotalPagar(pedido.getPrecioUnitario() * datos.getCantidad());
                 }
             }
-            if (datos.getRepartidorUsername() != null) pedido.setRepartidorUsername(datos.getRepartidorUsername());
-            if (datos.getEstado() != null) pedido.setEstado(datos.getEstado().toUpperCase());
-            if (datos.getPagoRegistrado() != null) pedido.setPagoRegistrado(datos.getPagoRegistrado());
+            if (datos.getRepartidorUsername() != null)
+                pedido.setRepartidorUsername(datos.getRepartidorUsername());
+            if (datos.getEstado() != null)
+                pedido.setEstado(datos.getEstado().toUpperCase());
+            if (datos.getPagoRegistrado() != null)
+                pedido.setPagoRegistrado(datos.getPagoRegistrado());
             return ResponseEntity.ok((Object) pedidoRepository.save(pedido));
         }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", "Pedido no encontrado")));
