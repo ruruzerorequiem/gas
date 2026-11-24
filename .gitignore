@@ -1,0 +1,29 @@
+# Dependencias y compilación
+node_modules/
+*/node_modules/
+dist/
+*/dist/
+target/
+*.class
+*.zip
+
+# Variables de entorno y credenciales (evitar fugas en GitHub)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+
+# Logs y temporales
+*.log
+.DS_Store
+Thumbs.db
+
+# Configuración de editores
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
